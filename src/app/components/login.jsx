@@ -90,10 +90,7 @@ export default function Login() {
 
         {/* Right section */}
         <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-r from-cyan-400 to-blue-600">
-          {/* Add your image or gradient */}
-          {/* <div className="w-3/4 h-3/4 bg-cover bg-center rounded-lg shadow-lg">
-            
-          </div> */}
+          
         </div>
       </div>
     </>
