@@ -16,9 +16,9 @@ export default function ChatHistory({ theme }) {
 
   return (
     <div
-      className={`w-80 border-l rounded-tl-none rounded-bl-none mr-5 mb-5 mt-5  rounded-lg bg-[#222727] ${
+      className={`w-80 border-l border-[#485252] rounded-tl-none rounded-bl-none mr-5 mb-5 mt-5 pt-2 rounded-lg  dark:bg-[#131619] ${
         theme === "light" ? "border-gray-200 bg-white" : "border-gray-800"
-      }  hidden lg:block`}
+      } hidden lg:block`}
     >
       <div className="flex items-center justify-between mb-4 pt-3 px-4">
         <span className={theme === "light" ? "text-gray-600" : "text-gray-400"}>
