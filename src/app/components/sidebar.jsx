@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaPowerOff, FaRegCircle } from "react-icons/fa";
 import {
   MessageSquare,
-  Search,
+  Search as SearchIcon,
   CreditCard,
   HelpCircle,
   Settings,
@@ -14,16 +14,31 @@ import { FiTriangle } from "react-icons/fi";
 import { IoMdAddCircleOutline } from "react-icons/io";
 
 export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
+  const [search, setSearch] = useState("");
   const menuItems = [
     {
       icon: <MessageSquare className="w-5 h-5 text-white" />,
       text: "Chats",
       count: "48",
     },
-    { icon: <Search className="w-5 h-5 text-white" />, text: "Search" },
+    {
+      icon: (
+        <div className="flex items-center">
+          <SearchIcon className="w-5 h-5 text-white mr-2" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search"
+            className="bg-transparent w-full px-2 py-1 text-white focus:outline-none"
+          />
+        </div>
+      ),
+      text: "",
+    },
     {
       icon: <CreditCard className="w-5 h-5 text-white" />,
-      text: "Manage subscription",
+      text: "subscription",
     },
     { icon: <Settings className="w-5 h-5 text-white" />, text: "Settings" },
   ];
@@ -66,42 +81,42 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
 
       <nav className="flex-1">
         <h1 className="text-[#9c9491f3] mt-5 mb-3 ml-4">General</h1>
-        {menuItems.map((item, index) => (
-          <div
-            key={index}
-            className="px-4 py-2 flex items-center text-white hover:bg-gray-800 cursor-pointer"
-          >
-            {item.icon}
-            <span className="ml-3 flex-1">{item.text}</span>
-            {item.count && (
-              <span className="text-xs bg-gray-800 px-2 py-1 rounded">
-                {item.count}
-              </span>
-            )}
-          </div>
-        ))}
+        <ul className="list-none pl-4">
+          {menuItems.map((item, index) => (
+            <li
+              key={index}
+              className="hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2"
+            >
+              {item.icon}
+              <span className="flex-1">{item.text}</span>
+              {item.count && (
+                <span className="text-xs bg-gray-800 px-2 py-1 rounded">
+                  {item.count}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
 
         <div className="pl-4 mt-8">
-          <ul className="list-none">
-            <h1 className="text-[#9c9491f3] mb-5">Chatlist</h1>
-            {chatCategories.map((item, index) => (
-              <li
-                key={index}
-                className={` hover:bg-[#262729] w-52 p-2 rounded-lg ${
-                  item.to === item.route ? "active" : ""
-                }`}
-              >
-                <a href={item.to} className="flex items-center gap-2">
-                  <item.Icon style={{ color: item.color }} />
-                  <span>{item.name}</span>
-                </a>
-              </li>
-            ))}
-            <button className="text-[#9c9491f3] flex mt-4 gap-3 text-center pl-1 hover:text-gray-600">
-              <IoMdAddCircleOutline className="mt-1 hover:text-gray-600 " />
-              <h1 className="hover:text-gray-600">Add new project</h1>
-            </button>
-          </ul>
+          <h1 className="text-[#9c9491f3] mb-5">Chatlist</h1>
+          {chatCategories.map((item, index) => (
+            <li
+              key={index}
+              className={` hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2 ${
+                item.to === item.route ? "active" : ""
+              }`}
+            >
+              <a href={item.to} className="flex items-center gap-2">
+                <item.Icon style={{ color: item.color }} />
+                <span>{item.name}</span>
+              </a>
+            </li>
+          ))}
+          <button className="text-[#9c9491f3] flex mt-4 gap-3 text-center pl-1 hover:text-gray-600">
+            <IoMdAddCircleOutline className="mt-1 hover:text-gray-600 " />
+            <h1 className="hover:text-gray-600">Add new project</h1>
+          </button>
         </div>
       </nav>
 
@@ -142,3 +157,4 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
     </div>
   );
 }
+
