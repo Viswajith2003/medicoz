@@ -76,29 +76,31 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
       </nav>
 
       <div className="p-4 border-t border-gray-800">
-        <div className="flex items-center mb-4">
-          <div className="w-8 h-8 rounded-full bg-blue-500 overflow-hidden">
-            <img src="/placeholder-avatar.png" alt="User" />
-          </div>
-          <div className="ml-3">
-            <div className="text-sm text-white">fasdff</div>
-            <div className="text-xs text-gray-400">tam@uxui.net</div>
+        <div className="items-center mb-4 bg-[#222727] p-2 rounded-xl">
+          <div className="flex ">
+            <div className="w-8 h-8 rounded-full bg-blue-500 overflow-hidden">
+              <img src="/placeholder-avatar.png" alt="User" />
+            </div>
+            <div className="ml-3">
+              <div className="text-sm text-white">medicoz</div>
+              <div className="text-xs text-gray-400">medicoz@01.net</div>
+            </div>
           </div>
         </div>
         <div className="flex items-center justify-between p-2 rounded-xl text-gray-400 bg-[#232627]">
-          <button
-            onClick={() => setTheme("dark")}
-            className="flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl bg-[#151719]"
-          >
-            <Moon className="w-4 h-4 mr-2" />
-            <span>Dark</span>
-          </button>
           <button
             onClick={() => setTheme("light")}
             className="flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl"
           >
             <Sun className="w-4 h-4 mr-2" />
             <span>Light</span>
+          </button>
+          <button
+            onClick={() => setTheme("dark")}
+            className="flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl bg-[#151719]"
+          >
+            <Moon className="w-4 h-4 mr-2" />
+            <span>Dark</span>
           </button>
         </div>
       </div>
