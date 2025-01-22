@@ -29,9 +29,11 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
 
   return (
     <div className="w-64 bg-[#1A1D1F] border-r border-gray-800 flex flex-col">
-      <div className="p-4 flex items-center">
-        <img src="/brainwave-logo.svg" alt="Brainwave" className="h-8" />
-        <span className="ml-2 text-white font-semibold">Brainwave</span>
+      <div className="p-4 flex items-center ">
+        <img src="/logo.png" alt="M" className="h-8" />
+        <span className="ml-2 text-white text-[30px] font-semibold">
+          MediCoz
+        </span>
       </div>
 
       <nav className="flex-1">
@@ -79,7 +81,7 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
             <img src="/placeholder-avatar.png" alt="User" />
           </div>
           <div className="ml-3">
-            <div className="text-sm text-white">Tran Mau Tri Tam</div>
+            <div className="text-sm text-white">fasdff</div>
             <div className="text-xs text-gray-400">tam@uxui.net</div>
           </div>
         </div>
