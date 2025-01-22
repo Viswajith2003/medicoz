@@ -12,6 +12,7 @@ import {
 import { IoSquareOutline } from "react-icons/io5";
 import { FiTriangle } from "react-icons/fi";
 import { IoMdAddCircleOutline } from "react-icons/io";
+import { ChevronDown } from "lucide-react";
 
 export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
   const [search, setSearch] = useState("");
@@ -70,8 +71,10 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
     },
   ];
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
   return (
-    <div className="w-64 bg-[#000000] py-2 pl-2 border-gray-800 flex flex-col">
+    <div className="w-64 bg-[#050505] py-2 pl-2 border-gray-800 flex flex-col">
       <div className="p-5 flex items-center ">
         <img src="/logo.png" alt="M" className="h-12 w-10" />
         <span className="ml-4 text-white text-[24px] font-semibold">
@@ -98,25 +101,39 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
           ))}
         </ul>
 
-        <div className="pl-4 mt-8">
-          <h1 className="text-[#9c9491f3] mb-5">Chatlist</h1>
-          {chatCategories.map((item, index) => (
-            <li
-              key={index}
-              className={` hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2 ${
-                item.to === item.route ? "active" : ""
+        <div className="pl-3 mt-8">
+          <button
+            className="w-52 flex items-center justify-between p-2 rounded-lg hover:bg-[#262729]"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            <span className="text-[#9c9491f3] ">Chatlist</span>
+            <ChevronDown
+              className={`w-4 h-4 ml-2 transition-all ${
+                isDropdownOpen ? "rotate-180" : ""
               }`}
-            >
-              <a href={item.to} className="flex items-center gap-2">
-                <item.Icon style={{ color: item.color }} />
-                <span>{item.name}</span>
-              </a>
-            </li>
-          ))}
-          <button className="text-[#9c9491f3] flex mt-4 gap-3 text-center pl-1 hover:text-gray-600">
-            <IoMdAddCircleOutline className="mt-1 hover:text-gray-600 " />
-            <h1 className="hover:text-gray-600">Add new project</h1>
+            />
           </button>
+          {isDropdownOpen && (
+            <ul className="list-none pl-4 mt-2">
+              {chatCategories.map((item, index) => (
+                <li
+                  key={index}
+                  className={` hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2 ${
+                    item.to === item.route ? "active" : ""
+                  }`}
+                >
+                  <a href={item.to} className="flex items-center gap-2">
+                    <item.Icon style={{ color: item.color }} />
+                    <span>{item.name}</span>
+                  </a>
+                </li>
+              ))}
+              <button className="text-[#9c9491f3] flex mt-4 gap-3 text-center pl-1 hover:text-gray-600">
+                <IoMdAddCircleOutline className="mt-1 hover:text-gray-600 " />
+                <h1 className="hover:text-gray-600">Add new project</h1>
+              </button>
+            </ul>
+          )}
         </div>
       </nav>
 
@@ -157,4 +174,3 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
     </div>
   );
 }
-

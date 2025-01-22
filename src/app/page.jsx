@@ -18,7 +18,7 @@ export default function Home() {
         theme={theme}
         setTheme={setTheme}
       />
-      <div className={`flex-1 flex bg-[#000000]`}>
+      <div className={`flex-1 flex bg-[#050505]`}>
         <MainContent theme={theme} />
         <ChatHistory theme={theme} />
       </div>
