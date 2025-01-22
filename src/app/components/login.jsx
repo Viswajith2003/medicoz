@@ -8,7 +8,7 @@ export default function Login() {
         <title>Login</title>
       </Head>
       <div className="flex h-screen">
-        {/* Left section */}
+       
         <div className="flex-1 flex flex-col justify-center px-8 md:px-16 bg-black text-white">
           <div className="max-w-md mx-auto">
             <div className="mb-8 text-center">
@@ -93,7 +93,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Right section */}
+        
         <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-r from-cyan-400 to-blue-600"></div>
       </div>
     </>
