@@ -3,46 +3,54 @@ export default function MainContent({ theme }) {
     {
       icon: "📷",
       title: "Photo editing",
-      bgColor: "bg-purple-100",
-      iconBg: "bg-purple-500",
+      bgColor: theme === "light" ? "bg-purple-100" : "bg-purple-600",
+      iconBg: "bg-purple-200",
     },
     {
       icon: "🎥",
       title: "Video generation",
-      bgColor: "bg-red-100",
-      iconBg: "bg-red-500",
+      bgColor: theme === "light" ? "bg-red-100" : "bg-red-600",
+      iconBg: "bg-red-200",
     },
     {
       icon: "🏆",
       title: "Education feedback",
-      bgColor: "bg-blue-100",
-      iconBg: "bg-blue-500",
+      bgColor: theme === "light" ? "bg-blue-100" : "bg-blue-600",
+      iconBg: "bg-blue-200",
     },
     {
       icon: "💻",
       title: "Code generation",
-      bgColor: "bg-green-100",
-      iconBg: "bg-green-500",
+      bgColor: theme === "light" ? "bg-green-100" : "bg-green-600",
+      iconBg: "bg-green-200",
     },
     {
       icon: "🎵",
       title: "Audio generation",
-      bgColor: "bg-amber-100",
-      iconBg: "bg-amber-500",
+      bgColor: theme === "light" ? "bg-amber-100" : "bg-amber-600",
+      iconBg: "bg-amber-200",
     },
   ];
 
-  const bgColor = theme === "light" ? "bg-white" : "bg-[#1A1D1F]";
-  const textColor = theme === "light" ? "text-gray-900" : "text-white";
-  const subTextColor = theme === "light" ? "text-gray-500" : "text-gray-400";
-
   return (
-    <div className={`flex-1 p-8 ${bgColor}`}>
+    <div
+      className={`flex-1 p-8 ${
+        theme === "light" ? "bg-gray-50" : "bg-[#1A1D1F]"
+      }`}
+    >
       <div className="max-w-2xl mx-auto">
-        <h1 className={`text-4xl font-bold ${textColor} mb-4`}>
+        <h1
+          className={`text-4xl font-bold mb-4 ${
+            theme === "light" ? "text-gray-900" : "text-white"
+          }`}
+        >
           Unlock the power of AI
         </h1>
-        <p className={`${subTextColor} mb-8`}>
+        <p
+          className={`mb-8 ${
+            theme === "light" ? "text-gray-600" : "text-gray-400"
+          }`}
+        >
           Chat with the smartest AI - Experience the power of AI with us
         </p>
 
@@ -51,18 +59,32 @@ export default function MainContent({ theme }) {
             <div
               key={index}
               className={`flex items-center justify-between p-4 rounded-lg ${
-                theme === "light" ? feature.bgColor : "bg-[#1E2124]"
-              } hover:opacity-90 cursor-pointer`}
+                theme === "light"
+                  ? "bg-white shadow-sm hover:shadow"
+                  : "bg-[#1E2124] hover:bg-[#23262A]"
+              } cursor-pointer`}
             >
               <div className="flex items-center">
                 <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center ${feature.iconBg}`}
+                  className={`w-10 h-10 ${feature.bgColor} rounded-lg flex items-center justify-center`}
                 >
                   {feature.icon}
                 </div>
-                <span className={`ml-4 ${textColor}`}>{feature.title}</span>
+                <span
+                  className={`ml-4 ${
+                    theme === "light" ? "text-gray-900" : "text-white"
+                  }`}
+                >
+                  {feature.title}
+                </span>
               </div>
-              <span className={`${subTextColor}`}>→</span>
+              <span
+                className={
+                  theme === "light" ? "text-gray-400" : "text-gray-400"
+                }
+              >
+                →
+              </span>
             </div>
           ))}
         </div>
@@ -70,10 +92,10 @@ export default function MainContent({ theme }) {
         <div className="mt-8">
           <div
             className={`flex items-center p-4 rounded-lg ${
-              theme === "light" ? "bg-gray-100" : "bg-[#1E2124]"
+              theme === "light" ? "bg-white shadow-sm" : "bg-[#1E2124]"
             }`}
           >
-            <span className={`${subTextColor}`}>Ask Brainwave anything</span>
+            <span className="text-gray-400">Ask Brainwave anything</span>
           </div>
         </div>
       </div>
