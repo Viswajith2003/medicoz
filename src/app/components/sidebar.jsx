@@ -28,7 +28,7 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
   ];
 
   return (
-    <div className="w-64 bg-[#1A1D1F] border-r border-gray-800 flex flex-col">
+    <div className="w-64 bg-[#1A1D1F] pb-2 border-gray-800 flex flex-col">
       <div className="p-4 flex items-center ">
         <img src="/logo.png" alt="M" className="h-8" />
         <span className="ml-2 text-white text-[30px] font-semibold">

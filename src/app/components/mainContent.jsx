@@ -9,7 +9,7 @@ export default function MainContent({ theme }) {
 
   return (
     <div
-      className={`flex-1 pt-40 ml-5 mb-3 mt-5  rounded-lg ${
+      className={`flex-1 pt-40 rounded-tr-none rounded-br-none  mb-5 mt-5  rounded-lg ${
         theme === "light" ? "bg-gray-50" : "bg-[#232726]"
       }`}
     >
@@ -31,12 +31,12 @@ export default function MainContent({ theme }) {
             </div>
           ))}
         </div>
-        <p className={`mb-6 text-gray-300 mt-20`}>
+        <p className={`mb-6 text-gray-300 mt-16`}>
           "Let's make healthcare simple, smart, and accessible."
         </p>
 
         <div
-          className={`type flex items-center  mx-6 mt-[180px] ${
+          className={`type flex items-center  mx-6 mt-[190px] ${
             theme === "light"
               ? "bg-white border-[#1b1c21]"
               : "bg-[#1b1c21] border-gray-700"
