@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Mail, Lock, Apple } from "lucide-react";
 
-const AuthPage = () => {
+const AuthPage = ({ onSignIn }) => {
   const [isLogin, setIsLogin] = useState(false);
-
   return (
     <div className="min-h-screen bg-[#0d0e11] flex flex-col md:flex-row items-center justify-center md:justify-between p-8 md:p-16">
       <div className="text-white mb-8 md:mb-0 md:ml-24">
@@ -18,14 +17,12 @@ const AuthPage = () => {
           <br />
           Seamless Healthcare.
         </p>
-
         <img
           src="/welcome.png"
           className="w-full h-auto max-w-[550px] max-h-[500px] mx-auto md:mx-0"
           alt="Medicine"
         />
       </div>
-
       <div className="flex items-center justify-center bg-gray-800 rounded-lg w-full max-w-[600px] p-8 md:p-12 my-2 mx-4 md:mx-20">
         <div className="rounded-3xl p-4 md:p-8 w-full max-w-[430px]">
           <div className="flex justify-center mb-8">
@@ -137,7 +134,11 @@ const AuthPage = () => {
                   placeholder="Password"
                 />
               </div>
-              <button className="w-full bg-emerald-500 text-white rounded-lg p-3 hover:bg-emerald-600 transition">
+              <button
+                className="w-full bg-emerald-500 text-white rounded-lg p-3 hover:bg-emerald-600 transition"
+                type="button"
+                onClick={onSignIn}
+              >
                 Sign In With Medicoz
               </button>
               <p className="text-gray-400 text-sm text-center">
@@ -153,4 +154,3 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
-
