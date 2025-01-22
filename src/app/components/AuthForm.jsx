@@ -108,11 +108,11 @@ const AuthPage = () => {
           // Login Form
           <form className="space-y-4">
             <button className="w-full bg-black text-white rounded-lg p-3 flex items-center justify-center gap-2">
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              <img src="/google.png" alt="Google" className="w-6" />
               Google Account
             </button>
             <button className="w-full bg-black text-white rounded-lg p-3 flex items-center justify-center gap-2">
-              <Apple className="w-5 h-5" />
+              <img src="/apple.png" alt="Apple" className="w-8 " />
               Apple Account
             </button>
             <div className="relative">
