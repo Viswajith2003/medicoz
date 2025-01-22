@@ -174,3 +174,4 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
     </div>
   );
 }
+
