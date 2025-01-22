@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 
 export default function Login() {
   return (
@@ -55,9 +56,11 @@ export default function Login() {
                   />
                   <span className="ml-2">Remember me</span>
                 </label>
-                <a href="#" className="text-sm text-cyan-400 hover:underline">
-                  Forgot Password?
-                </a>
+                <Link href="#" passHref>
+                  <a className="text-sm text-cyan-400 hover:underline">
+                    Forgot Password?
+                  </a>
+                </Link>
               </div>
               <button
                 type="submit"
@@ -81,18 +84,19 @@ export default function Login() {
             </div>
             <div className="mt-6 text-center text-sm text-gray-400">
               Don't have an account?{" "}
-              <a href="#" className="text-cyan-400 hover:underline">
-                Sign Up
-              </a>
+              <Link href="/register" passHref>
+                <a className="text-cyan-400 hover:underline">
+                  Sign Up
+                </a>
+              </Link>
             </div>
           </div>
         </div>
 
         {/* Right section */}
-        <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-r from-cyan-400 to-blue-600">
-          
-        </div>
+        <div className="hidden md:flex flex-1 items-center justify-center bg-gradient-to-r from-cyan-400 to-blue-600"></div>
       </div>
     </>
   );
 }
+

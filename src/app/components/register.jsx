@@ -10,7 +10,7 @@ export default function Register() {
         {/* Left section */}
         <div className="flex-1 flex flex-col justify-center px-8 md:px-16">
           <div className="max-w-md mx-auto">
-            <div className="mb-8 text-center ">
+            <div className="mb-8 text-center">
               <h1 className="text-4xl font-bold">
                 Hello, <span className="text-cyan-400">All</span>
               </h1>
@@ -88,9 +88,9 @@ export default function Register() {
               </button>
             </form>
             <div className="mt-6 text-center text-sm text-gray-400">
-              Don’t have an account?{" "}
-              <a href="#" className="text-cyan-400 hover:underline">
-                Sign Up
+              Already have an account?{" "}
+              <a href="" className="text-cyan-400 hover:underline">
+                Sign In
               </a>
             </div>
           </div>
@@ -106,9 +106,7 @@ export default function Register() {
               patients and professionals countless hours while improving
               healthcare quality.”
             </blockquote>
-            <div className="text-sm text-gray-400">
-              
-            </div>
+            <div className="text-sm text-gray-400"></div>
             {/* Optional image */}
             <div className="mt-6">
               <img
