@@ -1,12 +1,24 @@
 import { BsSend } from "react-icons/bs";
 import { LuPaperclip } from "react-icons/lu";
+import { useState } from "react";
 export default function MainContent({ theme }) {
   const features = [
     "Ask Medical Questions: Get instant, reliable answers.",
     "Personalized Health Advice: Tailored to your needs.",
     "Manage Appointments & Medication: Stay on track effortlessly.",
   ];
-
+  const [selectedFile, setSelectedFile] = useState(null);
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
+  const handleFileUpload = () => {
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      // Make API call to upload the file
+      console.log("File uploaded successfully");
+    }
+  };
   return (
     <div
       className={`flex-1 pt-40 rounded-tr-none rounded-br-none  mb-5 mt-5 text-center rounded-lg ${
@@ -46,16 +58,23 @@ export default function MainContent({ theme }) {
           placeholder="Ask any thing you want...?"
           className="flex-1 bg-transparent border-none pl-2 outline-none dark:text-white"
         />
-        <button className="p-2  rounded-lg">
-          <LuPaperclip
-            className="text-gray-500 hover:text-gray-300"
-            size={20}
-          />
-        </button>
-        <button className="p-2  rounded-lg">
+        <input
+          type="file"
+          onChange={handleFileChange}
+          className="hidden"
+          id="file"
+        />
+        <label htmlFor="file" className="p-2  rounded-lg">
+          <LuPaperclip className="text-gray-500 hover:text-gray-300" size={20} />
+        </label>
+        <button
+          onClick={handleFileUpload}
+          className="p-2  rounded-lg"
+        >
           <BsSend className="text-gray-500 hover:text-gray-300" size={20} />
         </button>
       </div>
     </div>
   );
 }
+
