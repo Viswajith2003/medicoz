@@ -1,25 +1,37 @@
+"use client";
 import React, { useState } from "react";
 import { BiMessage } from "react-icons/bi";
 import { MdOutlineDelete } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
+import chatItemsData from "../DATA/data";
 
-export default function ChatHistory({ theme , openChat}) {
-  const chatItems = Array(5).fill({
-    title: "Diseases relate he...",
-    description: "The main disease related to he...",
-    time: "Just now",
-  });
+export default function ChatHistory({ theme, openChat }) {
+  const [chatItems, setChatItems] = useState(chatItemsData);
+
+  const handleDeleteChat = () => {
+    setChatItems((prevItems) =>
+      prevItems.filter((item, index) => !item.checked)
+    );
+  };
+
+  const handleCheckboxChange = (index) => {
+    setChatItems((prevItems) =>
+      prevItems.map((item, i) =>
+        i === index ? { ...item, checked: !item.checked } : item
+      )
+    );
+  };
 
   return (
     <div
-      className={`w-80 border-l rounded-tl-none rounded-bl-none mr-5 mb-5 mt-5 pt-2 rounded-lg hidden lg:block ${
+      className={`w-80 border-l rounded-tl-none rounded-bl-none mr-5 mb-5 mt-5 pt-2 rounded-lg lg:block ${
         theme === "light"
           ? "border-gray-200 bg-white"
           : "border-[#485252] dark:bg-[#131619]"
       }`}
     >
       {/* Header Section */}
-      <div className="p-4">
+      <div className="p-4 ">
         {/* Top Status Bar */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
@@ -60,12 +72,13 @@ export default function ChatHistory({ theme , openChat}) {
             <span
               className={theme === "light" ? "text-gray-600" : "text-gray-400"}
             >
-              24/100
+              {chatItems.length}/100
             </span>
             <button
               className={`p-1 rounded hover:text-[#a0a5b7] ${
                 theme === "light" ? "text-gray-600" : "text-[#989cae]"
               }`}
+              onClick={handleDeleteChat}
             >
               <MdOutlineDelete className="w-5 h-5" />
             </button>
@@ -74,7 +87,7 @@ export default function ChatHistory({ theme , openChat}) {
       </div>
 
       {/* Chat Items List */}
-      <div className="px-4 space-y-3">
+      <div className="Itmes px-4 space-y-3 overflow-y-auto max-h-[calc(100vh-200px)]">
         {chatItems.map((chat, index) => (
           <div
             key={index}
@@ -88,7 +101,9 @@ export default function ChatHistory({ theme , openChat}) {
               <div className="flex items-start space-x-2">
                 <input
                   type="checkbox"
-                  className="mt-1 rounded border-gray-500 text-emerald-500 focus:ring-emerald-500"
+                  checked={chat.checked || false}
+                  onChange={() => handleCheckboxChange(index)}
+                  className="mt-1 w-4 h-4 rounded border-gray-500 text-emerald-500 focus:ring-emerald-500 bg-transparent"
                 />
                 <div>
                   <h3
@@ -118,13 +133,17 @@ export default function ChatHistory({ theme , openChat}) {
           </div>
         ))}
       </div>
-      <button
-        onClick={openChat} // Trigger the function passed as a prop
-        className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2"
+      <div
+        className={`btnDiv ${theme === "light" ? "bg-white" : "bg-[#1E2124]"}`}
       >
-        <IoMdAddCircleOutline className="w-7 h-7" />
-        <span className="text-xl">New Chat</span>
-      </button>
+        <button
+          onClick={openChat} // Trigger the function passed as a prop
+          className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2 fixed bottom-8 right-4 "
+        >
+          <IoMdAddCircleOutline className="w-7 h-7" />
+          <span className="text-xl">New Chat</span>
+        </button>
+      </div>
     </div>
   );
 }
