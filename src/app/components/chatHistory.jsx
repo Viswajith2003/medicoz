@@ -3,7 +3,7 @@ import { BiMessage } from "react-icons/bi";
 import { MdOutlineDelete } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
 
-export default function ChatHistory({ theme }) {
+export default function ChatHistory({ theme , openChat}) {
   const chatItems = Array(5).fill({
     title: "Diseases relate he...",
     description: "The main disease related to he...",
@@ -118,7 +118,10 @@ export default function ChatHistory({ theme }) {
           </div>
         ))}
       </div>
-      <button className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2">
+      <button
+        onClick={openChat} // Trigger the function passed as a prop
+        className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2"
+      >
         <IoMdAddCircleOutline className="w-7 h-7" />
         <span className="text-xl">New Chat</span>
       </button>
