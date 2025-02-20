@@ -1,3 +1,4 @@
+/*************  ✨ Codeium Command 🌟  *************/
 import { useState } from "react";
 import { FaPowerOff, FaRegCircle } from "react-icons/fa";
 import {
@@ -175,3 +176,5 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
   );
 }
 
+
+/******  017f2f97-cbfe-4625-bc30-25007dc2233b  *******/

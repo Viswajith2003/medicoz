@@ -9,10 +9,10 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [theme, setTheme] = useState("dark");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false); 
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleSignIn = () => {
-    setIsAuthenticated(true); 
+    setIsAuthenticated(true);
   };
 
   return isAuthenticated ? (
@@ -25,7 +25,7 @@ export default function Home() {
       />
       <div className="flex-1 flex bg-[#050505]">
         <MainContent theme={theme} showChat={isChatOpen} />{" "}
-        <ChatHistory theme={theme} openChat={() => setIsChatOpen(true)} />{" "}
+        {/* <ChatHistory theme={theme} openChat={() => setIsChatOpen(true)} />{" "} */}
       </div>
     </div>
   ) : (
