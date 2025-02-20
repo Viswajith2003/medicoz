@@ -24,7 +24,7 @@ export default function ChatHistory({ theme, openChat }) {
 
   return (
     <div
-      className={`w-80 border-l rounded-tl-none rounded-bl-none mr-5 pt-2 rounded-lg lg:block ${
+      className={`w-80 border-l rounded-tl-none rounded-bl-none pt-2 rounded-lg lg:block ${
         theme === "light"
           ? "border-gray-200 bg-white"
           : "border-[#485252] dark:bg-[#131619]"
@@ -136,13 +136,13 @@ export default function ChatHistory({ theme, openChat }) {
       <div
         className={`btnDiv ${theme === "light" ? "bg-white" : "bg-[#1E2124]"}`}
       >
-        {/* <button
+        <button
           onClick={openChat} // Trigger the function passed as a prop
           className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2 fixed bottom-8 right-4 "
         >
           <IoMdAddCircleOutline className="w-7 h-7" />
           <span className="text-xl">New Chat</span>
-        </button> */}
+        </button>
       </div>
     </div>
   );
