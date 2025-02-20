@@ -25,7 +25,7 @@ export default function Home() {
       />
       <div className="flex-1 flex bg-[#050505]">
         <MainContent theme={theme} showChat={isChatOpen} />{" "}
-        {/* <ChatHistory theme={theme} openChat={() => setIsChatOpen(true)} />{" "} */}
+        <ChatHistory theme={theme} openChat={() => setIsChatOpen(true)} />{" "}
       </div>
     </div>
   ) : (

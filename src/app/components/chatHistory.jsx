@@ -24,7 +24,7 @@ export default function ChatHistory({ theme, openChat }) {
 
   return (
     <div
-      className={`w-80 border-l rounded-tl-none rounded-bl-none mr-5 mb-5 mt-5 pt-2 rounded-lg lg:block ${
+      className={`w-80 border-l rounded-tl-none rounded-bl-none mr-5 pt-2 rounded-lg lg:block ${
         theme === "light"
           ? "border-gray-200 bg-white"
           : "border-[#485252] dark:bg-[#131619]"
