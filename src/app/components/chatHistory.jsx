@@ -5,7 +5,7 @@ import { MdOutlineDelete } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import chatItemsData from "../DATA/data";
 
-export default function ChatHistory({ theme, openChat }) {
+export default function ChatHistory({ theme, openChat, setShowWelcome }) {
   const [chatItems, setChatItems] = useState(chatItemsData);
 
   const handleDeleteChat = () => {
@@ -137,7 +137,10 @@ export default function ChatHistory({ theme, openChat }) {
         className={`btnDiv ${theme === "light" ? "bg-white" : "bg-[#1E2124]"}`}
       >
         <button
-          onClick={openChat} // Trigger the function passed as a prop
+          onClick={() => {
+            openChat();
+            setShowWelcome(true);
+          }}
           className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2 fixed bottom-8 right-4 "
         >
           <IoMdAddCircleOutline className="w-7 h-7" />
@@ -147,3 +150,4 @@ export default function ChatHistory({ theme, openChat }) {
     </div>
   );
 }
+

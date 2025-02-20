@@ -1,10 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Send, Paperclip } from "lucide-react";
 
 const MainContent = ({ theme }) => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [showWelcome, setShowWelcome] = useState(true);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const features = [
     "Ask Medical Questions: Get instant, reliable answers.",
@@ -83,30 +92,37 @@ const MainContent = ({ theme }) => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.sender === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-xl p-4 ${
-                    message.sender === "user"
-                      ? theme === "light"
-                        ? "bg-blue-500 text-white"
-                        : "bg-blue-600 text-white"
-                      : theme === "light"
-                      ? "bg-gray-200 text-black"
-                      : "bg-[#222425] text-white"
-                  }`}
-                >
-                  {message.text}
-                </div>
+        <div className="flex-1 flex flex-col relative">
+          <div className="absolute inset-0 flex flex-col">
+            <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6">
+              <div className="space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      message.sender === "user"
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[70%] rounded-xl p-4 ${
+                        message.sender === "user"
+                          ? theme === "light"
+                            ? "bg-blue-500 text-white"
+                            : "bg-blue-600 text-white"
+                          : theme === "light"
+                          ? "bg-gray-200 text-black"
+                          : "bg-[#222425] text-white"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
               </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
