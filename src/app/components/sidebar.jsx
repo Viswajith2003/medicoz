@@ -1,4 +1,3 @@
-/*************  ✨ Codeium Command 🌟  *************/
 import { useState } from "react";
 import { FaPowerOff, FaRegCircle } from "react-icons/fa";
 import {
@@ -155,17 +154,21 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between p-2 rounded-xl text-white bg-[#232627]">
+        <div className="flex items-center justify-between p-2 rounded-xl text-white">
           <button
             onClick={() => setTheme("light")}
-            className="flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl"
+            className={`flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl ${
+              theme === "light" ? "bg-gray-800" : "bg-[#232627]"
+            }`}
           >
             <Sun className="w-4 h-4 mr-2 text-white" />
             <span>Light</span>
           </button>
           <button
             onClick={() => setTheme("dark")}
-            className="flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl bg-[#151719]"
+            className={`flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl ${
+              theme === "dark" ? "bg-gray-800" : "bg-[#232627]"
+            }`}
           >
             <Moon className="w-4 h-4 mr-2 text-white" />
             <span>Dark</span>
@@ -177,4 +180,3 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
 }
 
 
-/******  017f2f97-cbfe-4625-bc30-25007dc2233b  *******/

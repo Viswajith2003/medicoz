@@ -120,7 +120,7 @@ const MainContent = ({ theme }) => {
                     </div>
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef}/>
               </div>
             </div>
           </div>
