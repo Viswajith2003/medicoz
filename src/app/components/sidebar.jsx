@@ -154,11 +154,11 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-between p-2 rounded-xl text-white">
+        <div className="flex items-center justify-between p-2 py-4 rounded-xl bg-[#222727] text-white">
           <button
             onClick={() => setTheme("light")}
-            className={`flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl ${
-              theme === "light" ? "bg-gray-800" : "bg-[#232627]"
+            className={`flex items-center hover:bg-[#000000] p-2 px-5 rounded-xl ${
+              theme === "light" ? "bg-[#000000]" : "bg-[#232627]"
             }`}
           >
             <Sun className="w-4 h-4 mr-2 text-white" />
@@ -166,8 +166,8 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
           </button>
           <button
             onClick={() => setTheme("dark")}
-            className={`flex items-center hover:bg-gray-800 p-2 px-5 rounded-xl ${
-              theme === "dark" ? "bg-gray-800" : "bg-[#232627]"
+            className={`flex items-center hover:bg-[#000000] p-2 px-5 rounded-xl ${
+              theme === "dark" ? "bg-[#000000]" : "bg-[#232627]"
             }`}
           >
             <Moon className="w-4 h-4 mr-2 text-white" />
@@ -178,5 +178,3 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
     </div>
   );
 }
-
-
