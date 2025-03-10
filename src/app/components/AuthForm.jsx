@@ -3,6 +3,43 @@ import { Mail, Lock, Apple } from "lucide-react";
 
 const AuthPage = ({ onSignIn }) => {
   const [isLogin, setIsLogin] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    console.log("Login request sent");
+    const response = await fetch("http://localhost:7000/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      // alert("Login Successful");
+      onSignIn();
+    } else {
+      alert(data.message);
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    const response = await fetch("http://localhost:7000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, lastName, email, password }),
+    });
+
+    const data = await response.json();
+    alert(data.message);
+  };
+
   return (
     <div className="min-h-screen bg-[#0d0e11] flex flex-col md:flex-row items-center justify-center md:justify-between p-8 md:p-16">
       <div className="text-white mb-8 md:mb-0 md:ml-24">
@@ -52,7 +89,7 @@ const AuthPage = ({ onSignIn }) => {
           </div>
 
           {isLogin ? (
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleRegister}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-gray-400 text-sm">First name</label>
@@ -60,6 +97,8 @@ const AuthPage = ({ onSignIn }) => {
                     type="text"
                     className="w-full bg-black rounded-lg p-3 text-white mt-1"
                     placeholder="First name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                   />
                 </div>
                 <div>
@@ -68,6 +107,8 @@ const AuthPage = ({ onSignIn }) => {
                     type="text"
                     className="w-full bg-black rounded-lg p-3 text-white mt-1"
                     placeholder="Last name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                   />
                 </div>
               </div>
@@ -77,6 +118,8 @@ const AuthPage = ({ onSignIn }) => {
                   type="email"
                   className="w-full bg-black rounded-lg p-3 text-white mt-1"
                   placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
@@ -85,6 +128,8 @@ const AuthPage = ({ onSignIn }) => {
                   type="password"
                   className="w-full bg-black rounded-lg p-3 text-white mt-1"
                   placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -101,7 +146,7 @@ const AuthPage = ({ onSignIn }) => {
               </button>
             </form>
           ) : (
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleLogin}>
               <button className="w-full bg-black text-white rounded-lg p-3 flex items-center justify-center gap-2">
                 <img src="/google.png" alt="Google" className="w-6" />
                 Google Account
@@ -125,6 +170,8 @@ const AuthPage = ({ onSignIn }) => {
                   type="email"
                   className="w-full bg-black rounded-lg p-3 text-white"
                   placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div>
@@ -132,12 +179,13 @@ const AuthPage = ({ onSignIn }) => {
                   type="password"
                   className="w-full bg-black rounded-lg p-3 text-white"
                   placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <button
                 className="w-full bg-emerald-500 text-white rounded-lg p-3 hover:bg-emerald-600 transition"
-                type="button"
-                onClick={onSignIn}
+                type="submit"
               >
                 Sign In With Medicoz
               </button>

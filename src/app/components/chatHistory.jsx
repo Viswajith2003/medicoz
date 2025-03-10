@@ -56,7 +56,7 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
                   }
                 ></span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-teal-400"></div>
+              <div className="w-8 h-8 rounded-full bg-[#18aaff]"></div>
             </div>
             <button
               onClick={openSharePopup} // Add the onClick handler
@@ -155,10 +155,10 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
           }`}
         >
           <button
-            onClick={() => {
-              openChat();
-              setShowWelcome(true);
-            }}
+            // onClick={() => {
+            //   openChat();
+            //   setShowWelcome(true);
+            // }}
             className="flex items-center space-x-2 bg-[#80d758] px-20 rounded-lg mt-32 mx-4 py-3 text-black p-2 fixed bottom-8 right-4 "
           >
             <IoMdAddCircleOutline className="w-7 h-7" />

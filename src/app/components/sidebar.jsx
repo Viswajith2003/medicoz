@@ -16,7 +16,13 @@ import { ChevronDown } from "lucide-react";
 import SettingsModal from "./settings.jsx";
 import SubscriptionModal from "./subscription.jsx"; // Import the new component
 
-export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
+export default function Sidebar({
+  isOpen,
+  setIsOpen,
+  theme,
+  setTheme,
+  onLogout,
+}) {
   const [search, setSearch] = useState("");
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false); // Add state for subscription modal
@@ -154,15 +160,18 @@ export default function Sidebar({ isOpen, setIsOpen, theme, setTheme }) {
             <div className="flex">
               <div className="flex ">
                 <div className="w-8 h-8 rounded-full bg-blue-500 overflow-hidden">
-                  <img src="/placeholder-avatar.png" alt="User" />
+                  <div className="w-8 h-8 rounded-full bg-[#18aaff]"></div>
                 </div>
-                <div className="ml-3">
+                <div className="ml-3 ">
                   <div className="text-sm text-white">medicoz</div>
                   <div className="text-xs text-gray-400">medicoz@01.net</div>
                 </div>
               </div>
               <div className="ml-auto">
-                <FaPowerOff className="mt-2 mr-4 text-white" />
+                <FaPowerOff
+                  className="mt-2 mr-4 text-white"
+                  onClick={onLogout}
+                />
               </div>
             </div>
           </div>

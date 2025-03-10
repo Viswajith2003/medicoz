@@ -34,7 +34,7 @@ const MainContent = ({ theme }) => {
 
   const callChatAPI = async (userMessage) => {
     setIsLoading(true);
-    const apiUrl = `${process.env.NEXT_PUBLIC_MEDICAL_BOT_API}/query`;
+    const apiUrl = "https://905f-52-201-198-142.ngrok-free.app/query";
     console.log("Calling API at:", apiUrl); // Debug
     try {
       const response = await axios.post(
@@ -45,7 +45,7 @@ const MainContent = ({ theme }) => {
       console.log("API Response:", response.data); // Debug
       return response.data.response;
     } catch (error) {
-      console.error("Axios Error:", error.message);
+      // console.error("Axios Error:", error.message);
       if (error.response) {
         console.error("Response Data:", error.response.data);
         console.error("Status:", error.response.status);
@@ -219,16 +219,8 @@ const MainContent = ({ theme }) => {
                     }`}
                   >
                     {message.sender === "bot" && !message.isTyping && (
-                      <div className="w-10 h-10 mr-3 rounded-full bg-green-500 flex items-center justify-center">
-                        <div className="w-6 h-6 text-white">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                          >
-                            <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z" />
-                          </svg>
-                        </div>
+                      <div className="w-10 h-10 mr-3 rounded-full flex items-center justify-center">
+                        <img src="/logo.png" alt="M" className="h-6 w-6" />
                       </div>
                     )}
                     <div className="flex flex-col max-w-[70%]">
@@ -286,7 +278,7 @@ const MainContent = ({ theme }) => {
                     </div>
 
                     {message.sender === "user" && (
-                      <div className="w-10 h-10 ml-3 rounded-full bg-blue-500 flex items-center justify-center">
+                      <div className="w-10 h-10 ml-3 rounded-full  flex items-center justify-center">
                         <span className="text-white text-lg">👤</span>
                       </div>
                     )}
