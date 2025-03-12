@@ -10,21 +10,26 @@ const AuthPage = ({ onSignIn }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("Login request sent");
-    const response = await fetch("http://localhost:7000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    // console.log("Login request sent with:", { email, password });
+    try {
+      const response = await fetch("http://localhost:7000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (data.token) {
-      localStorage.setItem("token", data.token);
-      // alert("Login Successful");
-      onSignIn();
-    } else {
-      alert(data.message);
+      if (response.ok) {
+        // console.log("Token received:", data.token); // Should be a JWT
+        localStorage.setItem("token", data.token); // Store real token
+        // console.log("Token stored in localStorage:", localStorage.getItem("token"));
+        onSignIn(); // Trigger Home's handleSignIn
+      } else {
+        console.error("Login failed:", data.message);
+      }
+    } catch (error) {
+      console.error("Login error:", error);
     }
   };
 

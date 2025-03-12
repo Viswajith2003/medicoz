@@ -22,6 +22,7 @@ export default function Sidebar({
   theme,
   setTheme,
   onLogout,
+  user, // Add user prop
 }) {
   const [search, setSearch] = useState("");
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -163,8 +164,12 @@ export default function Sidebar({
                   <div className="w-8 h-8 rounded-full bg-[#18aaff]"></div>
                 </div>
                 <div className="ml-3 ">
-                  <div className="text-sm text-white">medicoz</div>
-                  <div className="text-xs text-gray-400">medicoz@01.net</div>
+                  <div className="text-sm text-white">
+                    {user ? user.firstName : "Loading..."}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {user ? user.email : "Loading..."}
+                  </div>
                 </div>
               </div>
               <div className="ml-auto">

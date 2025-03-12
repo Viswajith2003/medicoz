@@ -34,7 +34,7 @@ const MainContent = ({ theme }) => {
 
   const callChatAPI = async (userMessage) => {
     setIsLoading(true);
-    const apiUrl = "https://905f-52-201-198-142.ngrok-free.app/query";
+    const apiUrl = "https://c328-54-196-122-230.ngrok-free.app/query";
     console.log("Calling API at:", apiUrl); // Debug
     try {
       const response = await axios.post(

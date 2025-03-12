@@ -3,11 +3,54 @@ import React, { useState } from "react";
 import { BiMessage } from "react-icons/bi";
 import { MdOutlineDelete } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
-import chatItemsData from "../DATA/data";
 import SharePopup from "./share.jsx"; // Import the new SharePopup component
 
 export default function ChatHistory({ theme, openChat, setShowWelcome }) {
-  const [chatItems, setChatItems] = useState(chatItemsData);
+  // Updated chat items with medical field topics and better headings
+  const chatItemsData = [
+    {
+      name: "Oncology Research Review",
+      description: "Exploring recent advancements in oncology research",
+      time: "2 days ago",
+    },
+    {
+      name: "Diabetes Management Guidelines",
+      description: "Patient care protocols for diabetes management",
+      time: "5 days ago",
+    },
+    // {
+    //   name: "Rural Telehealth Solutions",
+    //   description: "Telehealth implementation strategies for rural clinics",
+    //   time: "1 week ago",
+    // },
+    // {
+    //   name: "Advanced Medical Imaging",
+    //   description: "Medical imaging technologies and diagnostic accuracy",
+    //   time: "2 weeks ago",
+    // },
+    {
+      name: "Cardiovascular Prevention",
+      description: "Preventative medicine approaches for cardiovascular health",
+      time: "3 weeks ago",
+    },
+    {
+      name: "EHR Systems Analysis",
+      description: "Electronic health records systems comparison",
+      time: "1 month ago",
+    },
+    {
+      name: "Adolescent Mental Health",
+      description: "Mental health treatment protocols for adolescents",
+      time: "1 month ago",
+    },
+  ];
+
+  const [chatItems, setChatItems] = useState(
+    chatItemsData.map((item, index) => ({
+      ...item,
+      id: `chat-item-${index + 1}`,
+    }))
+  );
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false); // State to control share popup
 
   const handleDeleteChat = () => {
@@ -104,9 +147,9 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
 
         {/* Chat Items List */}
         <div className="Itmes px-4 space-y-3 overflow-y-auto max-h-[calc(100vh-200px)]">
-          {chatItems.map((chat, index) => (
+          {chatItems.map((chat) => (
             <div
-              key={index}
+              key={chat.id}
               className={`p-4 rounded-lg cursor-pointer transition-colors ${
                 theme === "light"
                   ? "bg-gray-50 hover:bg-gray-100"
@@ -118,7 +161,9 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
                   <input
                     type="checkbox"
                     checked={chat.checked || false}
-                    onChange={() => handleCheckboxChange(index)}
+                    onChange={() =>
+                      handleCheckboxChange(chatItems.indexOf(chat))
+                    }
                     className="mt-1 w-4 h-4 rounded border-gray-500 text-emerald-500 focus:ring-emerald-500 bg-transparent"
                   />
                   <div>
@@ -127,7 +172,7 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
                         theme === "light" ? "text-gray-900" : "text-white"
                       }`}
                     >
-                      {chat.title}
+                      {chat.name}
                     </h3>
                     <p
                       className={`text-xs ${
