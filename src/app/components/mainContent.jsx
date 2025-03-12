@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Paperclip } from "lucide-react";
+import { Send, Paperclip, Edit2 } from "lucide-react";
 import axios from "axios";
 
 const MainContent = ({ theme }) => {
@@ -7,6 +7,7 @@ const MainContent = ({ theme }) => {
   const [inputText, setInputText] = useState("");
   const [showWelcome, setShowWelcome] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -22,6 +23,13 @@ const MainContent = ({ theme }) => {
     "Manage Appointments & Medication: Stay on track effortlessly.",
     "Personalized Health Advice: Tailored to your needs.",
   ];
+
+  const getCurrentTimestamp = () => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
 
   const handleInputChange = (e) => {
     setInputText(e.target.value);
@@ -59,29 +67,98 @@ const MainContent = ({ theme }) => {
   const handleSendMessage = async () => {
     if (inputText.trim()) {
       const userMessage = inputText.trim();
-      setMessages([
-        ...messages,
-        { text: userMessage, sender: "user", timestamp: "Just now" },
-      ]);
-      setInputText("");
+      const timestamp = getCurrentTimestamp();
 
-      // Add typing indicator
-      setMessages((prev) => [
-        ...prev,
-        { text: "...", sender: "bot", isTyping: true },
-      ]);
+      if (editingMessageId !== null) {
+        // Update the existing message
+        const updatedMessages = [...messages];
+        const messageIndex = updatedMessages.findIndex(
+          (msg, index) => index === editingMessageId
+        );
 
-      // Get response from API
-      const response = await callChatAPI(userMessage);
+        if (messageIndex !== -1) {
+          // Update the user message
+          updatedMessages[messageIndex] = {
+            ...updatedMessages[messageIndex],
+            text: userMessage,
+            edited: true,
+          };
 
-      // Remove typing indicator and add actual response
-      setMessages((prev) => {
-        const filtered = prev.filter((msg) => !msg.isTyping);
-        return [
-          ...filtered,
-          { text: response, sender: "bot", timestamp: "Just now" },
-        ];
-      });
+          // Find the next bot message if it exists
+          const nextBotIndex = messageIndex + 1;
+          if (
+            nextBotIndex < updatedMessages.length &&
+            updatedMessages[nextBotIndex].sender === "bot"
+          ) {
+            // Replace with typing indicator
+            updatedMessages[nextBotIndex] = {
+              text: "...",
+              sender: "bot",
+              isTyping: true,
+            };
+
+            // Update messages with the edited user message and typing indicator
+            setMessages(updatedMessages);
+
+            // Get new response based on the edited message
+            const response = await callChatAPI(userMessage);
+
+            // Update the bot response
+            setMessages((prevMessages) => {
+              const newMessages = [...prevMessages];
+              const typingIndex = newMessages.findIndex((msg) => msg.isTyping);
+
+              if (typingIndex !== -1) {
+                newMessages[typingIndex] = {
+                  text: response,
+                  sender: "bot",
+                  timestamp: getCurrentTimestamp(),
+                  id: Date.now(),
+                };
+              }
+
+              return newMessages;
+            });
+          } else {
+            // Just update the user message if there's no bot response to regenerate
+            setMessages(updatedMessages);
+          }
+        }
+
+        // Reset editing state
+        setEditingMessageId(null);
+        setInputText("");
+      } else {
+        // Add new message
+        setMessages([
+          ...messages,
+          { text: userMessage, sender: "user", timestamp, id: Date.now() },
+        ]);
+        setInputText("");
+
+        // Add typing indicator
+        setMessages((prev) => [
+          ...prev,
+          { text: "...", sender: "bot", isTyping: true },
+        ]);
+
+        // Get response from API
+        const response = await callChatAPI(userMessage);
+
+        // Remove typing indicator and add actual response
+        setMessages((prev) => {
+          const filtered = prev.filter((msg) => !msg.isTyping);
+          return [
+            ...filtered,
+            {
+              text: response,
+              sender: "bot",
+              timestamp: getCurrentTimestamp(),
+              id: Date.now(),
+            },
+          ];
+        });
+      }
     }
   };
 
@@ -100,7 +177,8 @@ const MainContent = ({ theme }) => {
         {
           text: `Uploaded file: ${file.name}`,
           sender: "user",
-          timestamp: "Just now",
+          timestamp: getCurrentTimestamp(),
+          id: Date.now(),
         },
       ]);
 
@@ -111,7 +189,8 @@ const MainContent = ({ theme }) => {
           {
             text: "I've received your file. Please note that I have limited ability to analyze files directly. How can I help you with this document?",
             sender: "bot",
-            timestamp: "Just now",
+            timestamp: getCurrentTimestamp(),
+            id: Date.now(),
           },
         ]);
       }, 1000);
@@ -146,7 +225,8 @@ const MainContent = ({ theme }) => {
             updated.splice(typingIndex, 1, {
               text: response,
               sender: "bot",
-              timestamp: "Just now",
+              timestamp: getCurrentTimestamp(),
+              id: Date.now(),
             });
           }
           return updated;
@@ -164,6 +244,12 @@ const MainContent = ({ theme }) => {
       .catch((err) => {
         console.error("Could not copy text: ", err);
       });
+  };
+
+  const handleEditMessage = (index) => {
+    const messageToEdit = messages[index];
+    setEditingMessageId(index);
+    setInputText(messageToEdit.text);
   };
 
   return (
@@ -228,8 +314,8 @@ const MainContent = ({ theme }) => {
                         className={`rounded-xl p-4 ${
                           message.sender === "user"
                             ? theme === "light"
-                              ? "bg-blue-500 text-white"
-                              : "bg-blue-600 text-white"
+                              ? "bg-[#94a1e7] text-black"
+                              : "bg-[#0b3183] text-white"
                             : theme === "light"
                             ? "bg-gray-200 text-black"
                             : "bg-[#222425] text-white"
@@ -255,6 +341,9 @@ const MainContent = ({ theme }) => {
                       {message.timestamp && (
                         <div className="text-xs text-gray-500 mt-1 ml-1">
                           {message.timestamp}
+                          {message.edited && (
+                            <span className="ml-1">(edited)</span>
+                          )}
 
                           {message.sender === "bot" && !message.isTyping && (
                             <div className="flex items-center mt-1 space-x-2">
@@ -273,12 +362,24 @@ const MainContent = ({ theme }) => {
                               </button>
                             </div>
                           )}
+
+                          {message.sender === "user" && (
+                            <div className="flex items-center mt-1 space-x-2">
+                              <button
+                                onClick={() => handleEditMessage(index)}
+                                className="text-xs text-gray-400 hover:text-gray-300 flex items-center"
+                              >
+                                Edit
+                                <Edit2 className="ml-1 w-3 h-3" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
 
                     {message.sender === "user" && (
-                      <div className="w-10 h-10 ml-3 rounded-full  flex items-center justify-center">
+                      <div className="w-10 h-10 ml-3 rounded-full flex items-center justify-center">
                         <span className="text-white text-lg">👤</span>
                       </div>
                     )}
@@ -303,25 +404,31 @@ const MainContent = ({ theme }) => {
               value={inputText}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              placeholder="Ask anything you want..."
+              placeholder={
+                editingMessageId !== null
+                  ? "Edit your message..."
+                  : "Ask anything you want..."
+              }
               className="flex-1 bg-transparent border-none outline-none px-4 py-2 text-base md:text-lg dark:text-white"
               disabled={isLoading}
             />
             <div className="flex items-center gap-2">
-              <input
-                type="file"
-                className="hidden"
-                id="chat-file"
-                onChange={handleFileUpload}
-              />
-              <label
-                htmlFor="chat-file"
-                className={`p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                  isLoading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <Paperclip className="w-6 h-6 text-gray-500" />
-              </label>
+              {editingMessageId === null && (
+                <label
+                  htmlFor="chat-file"
+                  className={`p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  <Paperclip className="w-6 h-6 text-gray-500" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="chat-file"
+                    onChange={handleFileUpload}
+                  />
+                </label>
+              )}
               <button
                 onClick={handleSendMessage}
                 className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
@@ -331,6 +438,17 @@ const MainContent = ({ theme }) => {
               >
                 <Send className="w-6 h-6 text-gray-500" />
               </button>
+              {editingMessageId !== null && (
+                <button
+                  onClick={() => {
+                    setEditingMessageId(null);
+                    setInputText("");
+                  }}
+                  className="p-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
         </div>

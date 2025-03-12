@@ -32,7 +32,7 @@ export default function Sidebar({
     {
       icon: <MessageSquare className="w-5 h-5 text-white" />,
       text: "Chats",
-      count: "48",
+      count: "8",
     },
     {
       icon: (
@@ -74,18 +74,6 @@ export default function Sidebar({
       Icon: FiTriangle,
       color: "#d1402f",
     },
-    {
-      to: "/dashboard",
-      name: "Prescriptions",
-      Icon: IoSquareOutline,
-      color: "#e26e21",
-    },
-    {
-      to: "/test-components",
-      name: "Symptoms",
-      Icon: FaRegCircle,
-      color: "#82dbf7",
-    },
   ];
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -125,7 +113,7 @@ export default function Sidebar({
               className="w-52 flex items-center justify-between p-2 rounded-lg hover:bg-[#262729]"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <span className="text-[#9c9491f3] ">Chatlist</span>
+              <span className="text-[#9c9491f3] ">Core Topics</span>
               <ChevronDown
                 className={`w-4 h-4 ml-2 transition-all ${
                   isDropdownOpen ? "rotate-180" : ""
@@ -147,10 +135,6 @@ export default function Sidebar({
                     </a>
                   </li>
                 ))}
-                <button className="text-[#9c9491f3] flex mt-4 gap-3 text-center pl-1 hover:text-gray-600">
-                  <IoMdAddCircleOutline className="mt-1 hover:text-gray-600 " />
-                  <h1 className="hover:text-gray-600">Add new project</h1>
-                </button>
               </ul>
             )}
           </div>
@@ -161,7 +145,7 @@ export default function Sidebar({
             <div className="flex">
               <div className="flex ">
                 <div className="w-8 h-8 rounded-full bg-blue-500 overflow-hidden">
-                  <div className="w-8 h-8 rounded-full bg-[#18aaff]"></div>
+                  <img src="/profile.png" alt="M" className="h-8 w-8" />
                 </div>
                 <div className="ml-3 ">
                   <div className="text-sm text-white">

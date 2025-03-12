@@ -4,6 +4,7 @@ import { BiMessage } from "react-icons/bi";
 import { MdOutlineDelete } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import SharePopup from "./share.jsx"; // Import the new SharePopup component
+import { Search as SearchIcon } from "lucide-react";
 
 export default function ChatHistory({ theme, openChat, setShowWelcome }) {
   // Updated chat items with medical field topics and better headings
@@ -18,16 +19,6 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
       description: "Patient care protocols for diabetes management",
       time: "5 days ago",
     },
-    // {
-    //   name: "Rural Telehealth Solutions",
-    //   description: "Telehealth implementation strategies for rural clinics",
-    //   time: "1 week ago",
-    // },
-    // {
-    //   name: "Advanced Medical Imaging",
-    //   description: "Medical imaging technologies and diagnostic accuracy",
-    //   time: "2 weeks ago",
-    // },
     {
       name: "Cardiovascular Prevention",
       description: "Preventative medicine approaches for cardiovascular health",
@@ -92,21 +83,31 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1">
-                <BiMessage className="w-8 h-8 text-gray-400 hover:text-gray-300" />
+                {/* <BiMessage className="w-8 h-8 text-gray-400 hover:text-gray-300" /> */}
                 <span
                   className={
                     theme === "light" ? "text-gray-600" : "text-gray-400"
                   }
                 ></span>
               </div>
-              <div className="w-8 h-8 rounded-full bg-[#18aaff]"></div>
+              <img src="/profile.png" alt="M" className="h-8 w-8" />
+              <div className="flex items-center border border-[#666363] rounded-lg ">
+                <SearchIcon className="w-5 h-5 text-[#706c6c] mx-2" />
+                <input
+                  type="search"
+                  // value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search"
+                  className="bg-transparent w-24 px-2 py-1 text-white focus:outline-none"
+                />
+              </div>
             </div>
             <button
               onClick={openSharePopup} // Add the onClick handler
               className={`px-6 py-2 rounded-lg text-sm font-medium ${
                 theme === "light"
                   ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  : "bg-[#dadee1] text-black hover:bg-[#bcc2c9]"
+                  : "bg-[#a4a9ad] text-black hover:bg-[#bcc2c9]"
               } transition-colors`}
             >
               Share
@@ -139,7 +140,7 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
                 }`}
                 onClick={handleDeleteChat}
               >
-                <MdOutlineDelete className="w-5 h-5" />
+                <MdOutlineDelete className=" w-5 h-5" />
               </button>
             </div>
           </div>
