@@ -8,8 +8,8 @@ import {
   Settings,
   Sun,
   Moon,
-  Menu, // Added for mobile menu toggle
-  X, // Added for close button
+  Menu,
+  X,
 } from "lucide-react";
 import { IoSquareOutline } from "react-icons/io5";
 import { FiTriangle } from "react-icons/fi";
@@ -85,17 +85,15 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Mobile menu button - appears only on small screens */}
-      <button
-        onClick={toggleSidebar}
-        className="md:hidden fixed top-4 left-4 z-50 bg-[#050505] p-2 rounded-md"
-      >
-        {isOpen ? (
-          <X className="w-6 h-6 text-white" />
-        ) : (
+      {/* Mobile menu button - Menu on left, only shown when sidebar is closed */}
+      {!isOpen && (
+        <button
+          onClick={toggleSidebar}
+          className="md:hidden fixed top-4 left-4 z-50 bg-[#050505] p-2 rounded-md"
+        >
           <Menu className="w-6 h-6 text-white" />
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Overlay for mobile - appears when sidebar is open */}
       {isOpen && (
@@ -111,11 +109,21 @@ export default function Sidebar({
           isOpen ? "translate-x-0" : "-translate-x-full"
         } md:relative md:translate-x-0`}
       >
-        <div className="p-5 flex items-center ">
-          <img src="/logo.png" alt="M" className="h-12 w-10" />
-          <span className="ml-4 text-white text-[24px] font-semibold">
-            MediCoz
-          </span>
+        <div className="p-5 flex items-center justify-between">
+          <div className="flex items-center">
+            <img src="/logo.png" alt="M" className="h-12 w-10" />
+            <span className="ml-4 text-white text-[24px] font-semibold">
+              MediCoz
+            </span>
+          </div>
+
+          {/* X button on right - only visible when sidebar is open */}
+          <button
+            onClick={toggleSidebar}
+            className="md:hidden bg-[#050505] p-1 rounded-md mr-2"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto">
