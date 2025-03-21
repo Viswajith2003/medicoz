@@ -340,3 +340,6 @@ const SharePopup = ({ isOpen, onClose, theme }) => {
 
 export default SharePopup;
 
+// when i click on the new chat button in chathistory page then show the maincontent front page. if i on chating then i press the new chat button then show the main page (when we are refresh the page the what will show that will happen on there).
+// In chat history page ,when i search on the above search bar the it act like real search bar in order to the chat history items. 
+// make to set these two work in properly without change the current design

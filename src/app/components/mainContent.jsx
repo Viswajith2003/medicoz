@@ -2,10 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Edit2 } from "lucide-react";
 import axios from "axios";
 
-const MainContent = ({ theme }) => {
+const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
-  const [showWelcome, setShowWelcome] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
@@ -42,18 +41,17 @@ const MainContent = ({ theme }) => {
 
   const callChatAPI = async (userMessage) => {
     setIsLoading(true);
-    const apiUrl = "https://c328-54-196-122-230.ngrok-free.app/query";
-    console.log("Calling API at:", apiUrl); // Debug
+    const apiUrl = "https://4b59-54-196-122-230.ngrok-free.app/query";
+    console.log("Calling API at:", apiUrl);
     try {
       const response = await axios.post(
         apiUrl,
         { question: userMessage },
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("API Response:", response.data); // Debug
+      console.log("API Response:", response.data);
       return response.data.response;
     } catch (error) {
-      // console.error("Axios Error:", error.message);
       if (error.response) {
         console.error("Response Data:", error.response.data);
         console.error("Status:", error.response.status);
@@ -182,7 +180,7 @@ const MainContent = ({ theme }) => {
         },
       ]);
 
-      // Mock response for file upload (your FastAPI doesn't handle files yet)
+      // Mock response for file upload
       setTimeout(() => {
         setMessages((prev) => [
           ...prev,
@@ -254,7 +252,7 @@ const MainContent = ({ theme }) => {
 
   return (
     <div
-      className={`flex flex-col h-screen w-3/4 ${
+      className={`flex flex-col h-screen w-full md:w-3/4 ${
         theme === "light" ? "bg-gray-50" : "bg-[#131619]"
       }`}
     >
@@ -262,30 +260,30 @@ const MainContent = ({ theme }) => {
         <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-12 overflow-y-auto">
           <div className="max-w-6xl w-full">
             <h1
-              className={`font-bold text-4xl md:text-6xl text-center mb-6 ${
+              className={`font-bold text-2xl sm:text-4xl md:text-6xl text-center mb-6 ${
                 theme === "light" ? "text-gray-900" : "text-white"
               }`}
             >
               Welcome to Medicoz
             </h1>
-            <p className="text-xl md:text-2xl text-gray-400 text-center mb-12">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-400 text-center mb-8 md:mb-12">
               "AI Enhanced ChatBot for Medical Assistance"
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`p-6 rounded-xl ${
+                  className={`p-4 md:p-6 rounded-xl ${
                     theme === "light"
                       ? "bg-white shadow-lg text-black"
                       : "bg-[#222425] text-white"
                   }`}
                 >
-                  <p className="text-base md:text-lg">{feature}</p>
+                  <p className="text-sm sm:text-base md:text-lg">{feature}</p>
                 </div>
               ))}
             </div>
-            <p className="text-lg text-gray-300 text-center">
+            <p className="text-base md:text-lg text-gray-300 text-center">
               "Let's make healthcare simple, smart, and accessible."
             </p>
           </div>
@@ -293,8 +291,8 @@ const MainContent = ({ theme }) => {
       ) : (
         <div className="flex-1 flex flex-col relative">
           <div className="absolute inset-0 flex flex-col">
-            <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6">
-              <div className="space-y-6">
+            <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6">
+              <div className="space-y-4 sm:space-y-6">
                 {messages.map((message, index) => (
                   <div
                     key={index}
@@ -305,13 +303,17 @@ const MainContent = ({ theme }) => {
                     }`}
                   >
                     {message.sender === "bot" && !message.isTyping && (
-                      <div className="w-10 h-10 mr-3 rounded-full flex items-center justify-center">
-                        <img src="/logo.png" alt="M" className="h-6 w-6" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 mr-2 sm:mr-3 rounded-full flex items-center justify-center">
+                        <img
+                          src="/logo.png"
+                          alt="M"
+                          className="h-5 w-5 sm:h-6 sm:w-6"
+                        />
                       </div>
                     )}
-                    <div className="flex flex-col max-w-[70%]">
+                    <div className="flex flex-col max-w-[80%] sm:max-w-[70%]">
                       <div
-                        className={`rounded-xl p-4 ${
+                        className={`rounded-xl p-3 sm:p-4 ${
                           message.sender === "user"
                             ? theme === "light"
                               ? "bg-[#94a1e7] text-black"
@@ -323,18 +325,20 @@ const MainContent = ({ theme }) => {
                       >
                         {message.isTyping ? (
                           <div className="flex space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-gray-400 animate-bounce"></div>
+                            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400 animate-bounce"></div>
                             <div
-                              className="w-3 h-3 rounded-full bg-gray-400 animate-bounce"
+                              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400 animate-bounce"
                               style={{ animationDelay: "0.2s" }}
                             ></div>
                             <div
-                              className="w-3 h-3 rounded-full bg-gray-400 animate-bounce"
+                              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400 animate-bounce"
                               style={{ animationDelay: "0.4s" }}
                             ></div>
                           </div>
                         ) : (
-                          message.text
+                          <div className="text-sm sm:text-base">
+                            {message.text}
+                          </div>
                         )}
                       </div>
 
@@ -346,7 +350,7 @@ const MainContent = ({ theme }) => {
                           )}
 
                           {message.sender === "bot" && !message.isTyping && (
-                            <div className="flex items-center mt-1 space-x-2">
+                            <div className="flex flex-wrap items-center mt-1 space-x-2">
                               <button
                                 onClick={() => handleCopy(message.text)}
                                 className="text-xs text-gray-400 hover:text-gray-300"
@@ -357,7 +361,7 @@ const MainContent = ({ theme }) => {
                                 onClick={() => handleRegenerateResponse(index)}
                                 className="text-xs text-gray-400 hover:text-gray-300 flex items-center"
                               >
-                                Regenerate response
+                                Regenerate
                                 <span className="ml-1">🔄</span>
                               </button>
                             </div>
@@ -379,8 +383,10 @@ const MainContent = ({ theme }) => {
                     </div>
 
                     {message.sender === "user" && (
-                      <div className="w-10 h-10 ml-3 rounded-full flex items-center justify-center">
-                        <span className="text-white text-lg">👤</span>
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 ml-2 sm:ml-3 rounded-full flex items-center justify-center">
+                        <span className="text-white text-base sm:text-lg">
+                          👤
+                        </span>
                       </div>
                     )}
                   </div>
@@ -393,9 +399,9 @@ const MainContent = ({ theme }) => {
       )}
 
       <div className="border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-inherit">
-        <div className="max-w-6xl mx-auto w-full px-4 md:px-8 py-6">
+        <div className="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-8 py-3 sm:py-6">
           <div
-            className={`flex items-center p-4 rounded-xl ${
+            className={`flex items-center p-2 sm:p-4 rounded-xl ${
               theme === "light" ? "bg-white shadow-md" : "bg-[#1b1c21]"
             }`}
           >
@@ -409,18 +415,18 @@ const MainContent = ({ theme }) => {
                   ? "Edit your message..."
                   : "Ask anything you want..."
               }
-              className="flex-1 bg-transparent border-none outline-none px-4 py-2 text-base md:text-lg dark:text-white"
+              className="flex-1 bg-transparent border-none outline-none px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base md:text-lg dark:text-white"
               disabled={isLoading}
             />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {editingMessageId === null && (
                 <label
                   htmlFor="chat-file"
-                  className={`p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+                  className={`p-1 sm:p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
                     isLoading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  <Paperclip className="w-6 h-6 text-gray-500" />
+                  <Paperclip className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
                   <input
                     type="file"
                     className="hidden"
@@ -431,12 +437,12 @@ const MainContent = ({ theme }) => {
               )}
               <button
                 onClick={handleSendMessage}
-                className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
+                className={`p-1 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
                   isLoading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 disabled={isLoading}
               >
-                <Send className="w-6 h-6 text-gray-500" />
+                <Send className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
               </button>
               {editingMessageId !== null && (
                 <button
@@ -444,7 +450,7 @@ const MainContent = ({ theme }) => {
                     setEditingMessageId(null);
                     setInputText("");
                   }}
-                  className="p-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  className="p-1 sm:p-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   Cancel
                 </button>

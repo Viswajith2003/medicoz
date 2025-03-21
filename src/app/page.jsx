@@ -12,6 +12,8 @@ export default function Home() {
   const [theme, setTheme] = useState("dark");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [showChat, setShowChat] = useState(true);
 
   const fetchUserProfile = async (token) => {
     if (!token) {
@@ -28,7 +30,6 @@ export default function Home() {
       });
       const data = await response.json();
       if (response.ok) {
-        // console.log("User data:", data.user);
         setUser(data.user); // Update user data
       } else {
         console.error("API Error:", data.message);
@@ -44,9 +45,12 @@ export default function Home() {
     }
   };
 
+  const openChat = () => {
+    setShowChat(true);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-    // console.log("Initial token check:", token);
     setIsAuthenticated(token !== null);
     fetchUserProfile(token); // Run on mount
   }, []); // Runs only once on mount
@@ -54,7 +58,6 @@ export default function Home() {
   useEffect(() => {
     if (isAuthenticated) {
       const token = localStorage.getItem("token");
-      // console.log("Token retrieved after login:", token);
       fetchUserProfile(token); // Run after login
     }
   }, [isAuthenticated]); // Re-run when isAuthenticated changes
@@ -87,9 +90,23 @@ export default function Home() {
         onLogout={handleLogout}
         user={user}
       />
-      <div className="flex-1 flex bg-[#050505]">
-        <MainContent theme={theme} showChat={isChatOpen} />
-        <ChatHistory theme={theme} openChat={() => setIsChatOpen(true)} />
+      <div
+        className={`flex h-screen flex-1 relative ${
+          theme === "light" ? "bg-gray-50" : "bg-[#131619]"
+        }`}
+      >
+        {showChat && (
+          <MainContent
+            theme={theme}
+            showWelcome={showWelcome}
+            setShowWelcome={setShowWelcome}
+          />
+        )}
+        <ChatHistory
+          theme={theme}
+          openChat={openChat}
+          setShowWelcome={setShowWelcome}
+        />
       </div>
     </div>
   ) : (

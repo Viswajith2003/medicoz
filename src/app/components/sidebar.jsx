@@ -8,13 +8,15 @@ import {
   Settings,
   Sun,
   Moon,
+  Menu, // Added for mobile menu toggle
+  X, // Added for close button
 } from "lucide-react";
 import { IoSquareOutline } from "react-icons/io5";
 import { FiTriangle } from "react-icons/fi";
 import { IoMdAddCircleOutline } from "react-icons/io";
 import { ChevronDown } from "lucide-react";
 import SettingsModal from "./settings.jsx";
-import SubscriptionModal from "./subscription.jsx"; // Import the new component
+import SubscriptionModal from "./subscription.jsx";
 
 export default function Sidebar({
   isOpen,
@@ -22,11 +24,12 @@ export default function Sidebar({
   theme,
   setTheme,
   onLogout,
-  user, // Add user prop
+  user,
 }) {
   const [search, setSearch] = useState("");
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false); // Add state for subscription modal
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const menuItems = [
     {
@@ -52,7 +55,7 @@ export default function Sidebar({
     {
       icon: <CreditCard className="w-5 h-5 text-white" />,
       text: "subscription",
-      onClick: () => setShowSubscriptionModal(true), // Add onClick handler for subscription
+      onClick: () => setShowSubscriptionModal(true),
     },
     {
       icon: <Settings className="w-5 h-5 text-white" />,
@@ -76,11 +79,38 @@ export default function Sidebar({
     },
   ];
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
     <>
-      <div className="w-64 bg-[#050505] py-2 pl-2 border-gray-800 flex flex-col">
+      {/* Mobile menu button - appears only on small screens */}
+      <button
+        onClick={toggleSidebar}
+        className="md:hidden fixed top-4 left-4 z-50 bg-[#050505] p-2 rounded-md"
+      >
+        {isOpen ? (
+          <X className="w-6 h-6 text-white" />
+        ) : (
+          <Menu className="w-6 h-6 text-white" />
+        )}
+      </button>
+
+      {/* Overlay for mobile - appears when sidebar is open */}
+      {isOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`w-64 bg-[#050505] py-2 pl-2 border-gray-800 flex flex-col fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:relative md:translate-x-0`}
+      >
         <div className="p-5 flex items-center ">
           <img src="/logo.png" alt="M" className="h-12 w-10" />
           <span className="ml-4 text-white text-[24px] font-semibold">
@@ -88,7 +118,7 @@ export default function Sidebar({
           </span>
         </div>
 
-        <nav className="flex-1">
+        <nav className="flex-1 overflow-y-auto">
           <h1 className="text-[#9c9491f3] mt-5 mb-3 ml-4">General</h1>
           <ul className="list-none pl-4">
             {menuItems.map((item, index) => (
@@ -125,9 +155,7 @@ export default function Sidebar({
                 {chatCategories.map((item, index) => (
                   <li
                     key={index}
-                    className={` hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2 ${
-                      item.to === item.route ? "active" : ""
-                    }`}
+                    className="hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2"
                   >
                     <a href={item.to} className="flex items-center gap-2">
                       <item.Icon style={{ color: item.color }} />
@@ -140,7 +168,7 @@ export default function Sidebar({
           </div>
         </nav>
 
-        <div className="p-4  border-gray-800">
+        <div className="p-4 border-gray-800">
           <div className="items-center mb-4 bg-[#222727] p-3 rounded-xl">
             <div className="flex">
               <div className="flex ">
@@ -158,7 +186,7 @@ export default function Sidebar({
               </div>
               <div className="ml-auto">
                 <FaPowerOff
-                  className="mt-2 mr-4 text-white"
+                  className="mt-2 mr-4 text-white cursor-pointer"
                   onClick={onLogout}
                 />
               </div>
