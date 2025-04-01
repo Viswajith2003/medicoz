@@ -102,6 +102,33 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
     setIsSharePopupOpen(false);
   };
 
+  // Handle new chat button click with main content refresh
+  const handleNewChatClick = () => {
+    // Clear previous chat and reset interface
+    const mainContentElement = document.getElementById("main-content");
+    if (mainContentElement) {
+      // First, clear any chat messages or content
+      mainContentElement.innerHTML = "";
+
+      // Then, trigger the welcome screen
+      setShowWelcome(true);
+    }
+
+    // Notify the parent component to reset/clear chat state
+    openChat(true); // Pass true to indicate it's a new chat (modify openChat function accordingly)
+
+    // Close sidebar on mobile
+    if (window.innerWidth < 768) {
+      setIsChatHistoryOpen(false);
+    }
+
+    // Dispatch a custom event that the main content can listen for
+    const refreshEvent = new CustomEvent("refreshMainContent", {
+      detail: { isNewChat: true },
+    });
+    document.dispatchEvent(refreshEvent);
+  };
+
   const filteredChatItems = chatItems.filter(
     (item) =>
       item.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -125,7 +152,6 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
           <TbLayoutSidebarLeftCollapseFilled size={20} />
         )}
       </button>
-
       {/* Chat History Sidebar */}
       <div
         className={`fixed md:relative top-0 right-0 h-full z-40 transform transition-transform duration-300 ease-in-out ${
@@ -168,13 +194,11 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
             Share
           </button>
         </div>
-
         <hr
           className={`${
             theme === "light" ? "border-gray-200" : "border-[#565858]"
           } mb-3 md:mb-5`}
         />
-
         {/* Chat items container */}
         <div className="flex-1 px-2 md:px-4 overflow-y-auto pb-20">
           <div className="space-y-2 md:space-y-3">
@@ -234,7 +258,6 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
             ))}
           </div>
         </div>
-
         {/* Fixed new chat button */}
         <div
           className={`absolute bottom-0 left-0 right-0 ${
@@ -244,13 +267,7 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
           } ${isChatHistoryOpen ? "block" : "hidden md:block"}`}
         >
           <button
-            onClick={() => {
-              openChat();
-              setShowWelcome(true);
-              if (window.innerWidth < 768) {
-                setIsChatHistoryOpen(false);
-              }
-            }}
+            onClick={handleNewChatClick}
             className="flex items-center justify-center space-x-1 md:space-x-2 bg-[#80d758] w-full rounded-lg py-2 md:py-3 text-black hover:bg-[#6dc348] transition-colors"
           >
             <IoMdAddCircleOutline className="w-5 h-5 md:w-6 md:h-6" />

@@ -9,6 +9,18 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      setMessages([]);
+      setShowWelcome(true);
+    };
+
+    document.addEventListener("refreshMainContent", handleRefresh);
+    return () => {
+      document.removeEventListener("refreshMainContent", handleRefresh);
+    };
+  }, [setShowWelcome]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -41,7 +53,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
 
   const callChatAPI = async (userMessage) => {
     setIsLoading(true);
-    const apiUrl = "https://4b59-54-196-122-230.ngrok-free.app/query";
+    const apiUrl = "https://medicoz-rag-api-production.up.railway.app/query";
     console.log("Calling API at:", apiUrl);
     try {
       const response = await axios.post(
