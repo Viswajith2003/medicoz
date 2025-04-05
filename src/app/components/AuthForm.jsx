@@ -19,6 +19,7 @@ const AuthPage = ({ onSignIn }) => {
       });
 
       const data = await response.json();
+      console.log(data);
 
       if (response.ok) {
         // console.log("Token received:", data.token); // Should be a JWT

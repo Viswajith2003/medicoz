@@ -18,6 +18,7 @@ export default function ChatHistory({ theme, setShowWelcome }) {
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [activeChat, setActiveChat] = useState(null);
+  const [error, setError] = useState(null);
 
   // Get auth token from localStorage
   const getAuthToken = () => localStorage.getItem("token");
@@ -25,25 +26,43 @@ export default function ChatHistory({ theme, setShowWelcome }) {
   // Fetch chat history from backend
   const fetchChatHistory = async () => {
     setIsLoading(true);
+    setError(null);
     try {
+      const token = getAuthToken();
+      if (!token) {
+        setError("Authentication token missing. Please log in again.");
+        setIsLoading(false);
+        return;
+      }
+
       const response = await axios.get(`${API_BASE_URL}/chat/user/all`, {
-        headers: { Authorization: getAuthToken() },
+        headers: { authorization: `bearer ${token}` },
       });
+      console.log(response);
 
       if (response.data) {
         // Transform the chat data for UI display
         const transformedChats = response.data.map((chat) => ({
           id: chat._id,
           name: chat.title || "New Chat",
-          description: "Chat session",
+          description:
+            chat.messages && chat.messages.length > 0
+              ? chat.messages[0].content.substring(0, 50) + "..."
+              : "Chat session",
           time: formatTimeAgo(new Date(chat.updatedAt)),
           checked: false,
         }));
 
         setChatItems(transformedChats);
+
+        // If we have chats but no active chat is selected, select the most recent one
+        if (transformedChats.length > 0 && !activeChat) {
+          setActiveChat(transformedChats[0].id);
+        }
       }
     } catch (error) {
       console.error("Error fetching chat history:", error);
+      setError("Failed to load chat history. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +104,7 @@ export default function ChatHistory({ theme, setShowWelcome }) {
 
         setChatItems((prevItems) => [newChat, ...prevItems]);
         setActiveChat(event.detail.chatId);
+        setShowWelcome(false); // Hide welcome screen when a new chat is created
       }
     };
 
@@ -92,6 +112,22 @@ export default function ChatHistory({ theme, setShowWelcome }) {
 
     return () => {
       document.removeEventListener("chatCreated", handleChatCreated);
+    };
+  }, [setShowWelcome]);
+
+  // Listen for chat update events
+  useEffect(() => {
+    const handleChatUpdated = (event) => {
+      if (event.detail && event.detail.chatId) {
+        // Refresh chat history to get the latest data
+        fetchChatHistory();
+      }
+    };
+
+    document.addEventListener("chatUpdated", handleChatUpdated);
+
+    return () => {
+      document.removeEventListener("chatUpdated", handleChatUpdated);
     };
   }, []);
 
@@ -129,10 +165,16 @@ export default function ChatHistory({ theme, setShowWelcome }) {
     if (selectedChats.length === 0) return;
 
     try {
+      const token = getAuthToken();
+      if (!token) {
+        setError("Authentication token missing. Please log in again.");
+        return;
+      }
+
       // Delete selected chats one by one
       for (const chat of selectedChats) {
         await axios.delete(`${API_BASE_URL}/chat/${chat.id}`, {
-          headers: { Authorization: getAuthToken() },
+          headers: { authorization: `bearer ${token}` },
         });
       }
 
@@ -146,8 +188,19 @@ export default function ChatHistory({ theme, setShowWelcome }) {
         const refreshEvent = new CustomEvent("refreshMainContent");
         document.dispatchEvent(refreshEvent);
       }
+
+      // If there are remaining chats, select the first one
+      const remainingChats = chatItems.filter((item) => !item.checked);
+      if (
+        remainingChats.length > 0 &&
+        selectedChats.some((chat) => chat.id === activeChat)
+      ) {
+        setActiveChat(remainingChats[0].id);
+        handleOpenChat(remainingChats[0].id);
+      }
     } catch (error) {
       console.error("Error deleting chats:", error);
+      setError("Failed to delete selected chats. Please try again.");
     }
   };
 
@@ -300,6 +353,18 @@ export default function ChatHistory({ theme, setShowWelcome }) {
             <div className="flex justify-center items-center h-24">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
             </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-32 text-red-500 p-4 text-center">
+              <p className="text-sm mb-2">{error}</p>
+              <button
+                onClick={fetchChatHistory}
+                className={`px-3 py-1 rounded-lg text-xs ${
+                  theme === "light" ? "bg-gray-200" : "bg-gray-700"
+                }`}
+              >
+                Retry
+              </button>
+            </div>
           ) : filteredChatItems.length > 0 ? (
             <div className="space-y-2 md:space-y-3">
               {filteredChatItems.map((chat, index) => (
@@ -358,6 +423,16 @@ export default function ChatHistory({ theme, setShowWelcome }) {
             <div className="flex flex-col items-center justify-center h-32 text-gray-500">
               <BiMessage className="w-8 h-8 mb-2" />
               <p className="text-sm">No chats found</p>
+              {!isLoading && (
+                <button
+                  onClick={handleNewChatClick}
+                  className={`mt-4 px-3 py-1 rounded-lg text-xs ${
+                    theme === "light" ? "bg-gray-200" : "bg-gray-700"
+                  }`}
+                >
+                  Create New Chat
+                </button>
+              )}
             </div>
           )}
         </div>

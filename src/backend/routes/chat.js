@@ -47,6 +47,7 @@ router.get("/user/all", verifyToken, async (req, res) => {
     const sessions = await ChatSession.find({ userId: req.user.userId })
       .select("_id title updatedAt")
       .sort({ updatedAt: -1 });
+    console.log(sessions);
 
     return res.json(sessions);
   } catch (err) {
@@ -67,6 +68,22 @@ router.get("/:sessionId", verifyToken, async (req, res) => {
     res.json(session.messages);
   } catch (err) {
     res.status(500).json({ error: "Could not fetch messages" });
+  }
+});
+
+// Delete a chat session
+router.delete("/:sessionId", verifyToken, async (req, res) => {
+  try {
+    const session = await ChatSession.findByIdAndDelete(req.params.sessionId);
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    res.json({ message: "Session deleted successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete session" });
   }
 });
 

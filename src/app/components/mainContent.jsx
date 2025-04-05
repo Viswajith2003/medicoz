@@ -10,6 +10,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [currentChatId, setCurrentChatId] = useState(null);
+  const [pendingMessages, setPendingMessages] = useState([]); // Track messages waiting for chat ID
   const messagesEndRef = useRef(null);
 
   // Get auth token from localStorage
@@ -19,6 +20,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
     const handleRefresh = (event) => {
       setMessages([]);
       setCurrentChatId(null);
+      setPendingMessages([]);
       setShowWelcome(true);
     };
 
@@ -37,12 +39,41 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
     };
   }, [setShowWelcome]);
 
+  // Handle pending messages when chat ID changes
+  useEffect(() => {
+    const processPendingMessages = async () => {
+      if (currentChatId && pendingMessages.length > 0) {
+        // Process all pending messages in sequence
+        for (const msg of pendingMessages) {
+          await axios.post(
+            `${API_BASE_URL}/chat/${currentChatId}`,
+            {
+              role: msg.role,
+              content: msg.content,
+            },
+            {
+              headers: { Authorization: `Bearer ${getAuthToken()}` },
+            }
+          );
+        }
+        // Clear pending messages after processing
+        setPendingMessages([]);
+      }
+    };
+
+    processPendingMessages();
+  }, [currentChatId, pendingMessages]);
+
   const loadChatHistory = async (chatId) => {
     try {
+      const token = getAuthToken();
+      if (!token) {
+        console.error("Authentication token missing. Please log in again.");
+        return;
+      }
       const response = await axios.get(`${API_BASE_URL}/chat/${chatId}`, {
-        headers: { Authorization: getAuthToken() },
+        headers: { authorization: `bearer ${token}` },
       });
-
       if (response.data) {
         setCurrentChatId(chatId);
 
@@ -130,12 +161,19 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
             content,
           },
           {
-            headers: { Authorization: getAuthToken() },
+            headers: { Authorization: `Bearer ${getAuthToken()}` },
           }
         );
         return response.data;
       } else {
-        // Create new chat
+        // If there's no current chat ID but we're trying to save a bot message,
+        // add it to pending messages
+        if (role === "bot") {
+          setPendingMessages((prev) => [...prev, { role, content }]);
+          return null;
+        }
+
+        // Create new chat for user messages
         const response = await axios.post(
           `${API_BASE_URL}/chat/new`,
           {
@@ -143,7 +181,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
             content,
           },
           {
-            headers: { Authorization: getAuthToken() },
+            headers: { Authorization: `Bearer ${getAuthToken()}` },
           }
         );
 
@@ -221,6 +259,15 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
 
               return newMessages;
             });
+
+            // Save the updated bot response
+            if (currentChatId) {
+              // Find the bot message ID if available
+              const botMessageId = updatedMessages[nextBotIndex]?.id;
+
+              // Update the bot message in the database
+              await saveMessage("bot", response);
+            }
           } else {
             // Just update the user message if there's no bot response to regenerate
             setMessages(updatedMessages);
@@ -231,7 +278,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
         setEditingMessageId(null);
         setInputText("");
       } else {
-        // Add new message to UI
+        // Add new message to UI immediately
         const userMsgObj = {
           text: userMessage,
           sender: "user",
@@ -241,7 +288,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
         setMessages([...messages, userMsgObj]);
         setInputText("");
 
-        // Save user message to backend
+        // Save user message to backend and get the chat ID if it's a new chat
         const savedUserMsg = await saveMessage("user", userMessage);
 
         // Add typing indicator
@@ -252,6 +299,9 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
 
         // Get response from API
         const response = await callChatAPI(userMessage);
+
+        // Wait a brief moment to ensure the chat ID is set (if it was a new chat)
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Save bot response to backend
         const savedBotMsg = await saveMessage("bot", response);
