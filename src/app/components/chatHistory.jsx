@@ -9,7 +9,7 @@ import { Search as SearchIcon } from "lucide-react";
 import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:7000";
+const API_BASE_URL = "https://medicoz-backend.vercel.app";
 
 export default function ChatHistory({ theme, setShowWelcome }) {
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);

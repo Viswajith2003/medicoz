@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Edit2 } from "lucide-react";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:7000";
+const API_BASE_URL = "https://medicoz-backend.vercel.app";
 
 const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [messages, setMessages] = useState([]);
