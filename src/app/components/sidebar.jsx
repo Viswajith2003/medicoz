@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FaPowerOff, FaRegCircle } from "react-icons/fa";
+import { FaCircleUser } from "react-icons/fa6";
 import {
   MessageSquare,
   Search as SearchIcon,
@@ -180,9 +181,7 @@ export default function Sidebar({
           <div className="items-center mb-4 bg-[#222727] p-3 rounded-xl">
             <div className="flex">
               <div className="flex ">
-                <div className="w-8 h-8 rounded-full bg-blue-500 overflow-hidden">
-                  <img src="/profile.png" alt="M" className="h-8 w-8" />
-                </div>
+                <FaCircleUser className="w-8 h-8 rounded-full text-[#25f3f3]" />
                 <div className="ml-3 ">
                   <div className="text-sm text-white">
                     {user ? user.firstName : "Loading..."}

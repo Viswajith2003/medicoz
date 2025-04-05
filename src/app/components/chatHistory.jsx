@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { FaCircleUser } from "react-icons/fa6";
 import { BiMessage } from "react-icons/bi";
 import { MdOutlineDelete } from "react-icons/md";
 import { IoMdAddCircleOutline } from "react-icons/io";
@@ -298,11 +299,7 @@ export default function ChatHistory({ theme, setShowWelcome }) {
         {/* Header with search and share button */}
         <div className="p-2 md:p-4 pt-12 md:pt-4 flex flex-col md:flex-row items-start md:items-center justify-between">
           <div className="flex items-center w-full md:w-auto mb-2 md:mb-0">
-            <img
-              src="/profile.png"
-              alt="M"
-              className="h-6 w-6 md:h-8 md:w-8 mr-2 flex-shrink-0"
-            />
+            <FaCircleUser className="w-8 mr-2 h-8 rounded-full text-[#25f3f3]" />
             <div className="flex items-center border border-[#666363] rounded-lg flex-1 md:w-auto">
               <SearchIcon className="w-4 h-4 md:w-5 md:h-5 text-[#706c6c] mx-1 md:mx-2 flex-shrink-0" />
               <input
