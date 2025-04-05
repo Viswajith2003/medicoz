@@ -7,63 +7,104 @@ import { X } from "lucide-react";
 import SharePopup from "./share.jsx";
 import { Search as SearchIcon } from "lucide-react";
 import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
+import axios from "axios";
 
-export default function ChatHistory({ theme, openChat, setShowWelcome }) {
+const API_BASE_URL = "http://localhost:7000";
+
+export default function ChatHistory({ theme, setShowWelcome }) {
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
-  const chatItemsData = [
-    {
-      name: "Oncology Research Review",
-      description: "Exploring recent advancements in oncology research",
-      time: "2 days ago",
-    },
-    {
-      name: "Diabetes Management Guidelines",
-      description: "Patient care protocols for diabetes management",
-      time: "5 days ago",
-    },
-    {
-      name: "Cardiovascular Prevention",
-      description: "Preventative medicine approaches for cardiovascular health",
-      time: "3 weeks ago",
-    },
-    {
-      name: "EHR Systems Analysis",
-      description: "Electronic health records systems comparison",
-      time: "1 month ago",
-    },
-    {
-      name: "Adolescent Mental Health",
-      description: "Mental health treatment protocols for adolescents",
-      time: "1 month ago",
-    },
-    {
-      name: "Chronic Pain Management",
-      description: "Treatment options for chronic pain patients",
-      time: "2 weeks ago",
-    },
-    {
-      name: "Neurology Research Updates",
-      description: "New findings in neurology research and their applications",
-      time: "1 week ago",
-    },
-  ];
-
-  const [chatItems, setChatItems] = useState(
-    chatItemsData.map((item, index) => ({
-      ...item,
-      id: `chat-item-${index + 1}`,
-    }))
-  );
+  const [chatItems, setChatItems] = useState([]);
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeChat, setActiveChat] = useState(null);
+
+  // Get auth token from localStorage
+  const getAuthToken = () => localStorage.getItem("token");
+
+  // Fetch chat history from backend
+  const fetchChatHistory = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/chat/user/all`, {
+        headers: { Authorization: getAuthToken() },
+      });
+
+      if (response.data) {
+        // Transform the chat data for UI display
+        const transformedChats = response.data.map((chat) => ({
+          id: chat._id,
+          name: chat.title || "New Chat",
+          description: "Chat session",
+          time: formatTimeAgo(new Date(chat.updatedAt)),
+          checked: false,
+        }));
+
+        setChatItems(transformedChats);
+      }
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Format relative time
+  const formatTimeAgo = (date) => {
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    const diffInMonths = Math.floor(diffInDays / 30);
+
+    if (diffInMinutes < 60)
+      return diffInMinutes <= 1 ? "just now" : `${diffInMinutes} mins ago`;
+    if (diffInHours < 24)
+      return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
+    if (diffInDays < 7)
+      return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    if (diffInWeeks < 4)
+      return `${diffInWeeks} ${diffInWeeks === 1 ? "week" : "weeks"} ago`;
+    return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+  };
+
+  // Listen for new chat creation events
+  useEffect(() => {
+    const handleChatCreated = (event) => {
+      if (event.detail && event.detail.chatId && event.detail.title) {
+        // Add the new chat to the list
+        const newChat = {
+          id: event.detail.chatId,
+          name: event.detail.title,
+          description: "New conversation",
+          time: "just now",
+          checked: false,
+        };
+
+        setChatItems((prevItems) => [newChat, ...prevItems]);
+        setActiveChat(event.detail.chatId);
+      }
+    };
+
+    document.addEventListener("chatCreated", handleChatCreated);
+
+    return () => {
+      document.removeEventListener("chatCreated", handleChatCreated);
+    };
+  }, []);
 
   // Toggle chat history visibility
   const toggleChatHistory = () => {
     setIsChatHistoryOpen(!isChatHistoryOpen);
   };
 
-  // Close sidebar automatically on small screens
+  // Fetch chat history on component mount
   useEffect(() => {
+    fetchChatHistory();
+
+    // Close sidebar automatically on small screens
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setIsChatHistoryOpen(false);
@@ -82,11 +123,36 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleDeleteChat = () => {
-    setChatItems((prevItems) => prevItems.filter((item) => !item.checked));
+  const handleDeleteChat = async () => {
+    const selectedChats = chatItems.filter((item) => item.checked);
+
+    if (selectedChats.length === 0) return;
+
+    try {
+      // Delete selected chats one by one
+      for (const chat of selectedChats) {
+        await axios.delete(`${API_BASE_URL}/chat/${chat.id}`, {
+          headers: { Authorization: getAuthToken() },
+        });
+      }
+
+      // Update UI after deletion
+      setChatItems((prevItems) => prevItems.filter((item) => !item.checked));
+
+      // If the active chat was deleted, reset to welcome screen
+      if (selectedChats.some((chat) => chat.id === activeChat)) {
+        setActiveChat(null);
+        setShowWelcome(true);
+        const refreshEvent = new CustomEvent("refreshMainContent");
+        document.dispatchEvent(refreshEvent);
+      }
+    } catch (error) {
+      console.error("Error deleting chats:", error);
+    }
   };
 
-  const handleCheckboxChange = (index) => {
+  const handleCheckboxChange = (index, e) => {
+    e.stopPropagation(); // Prevent chat from opening when checking the box
     setChatItems((prevItems) =>
       prevItems.map((item, i) =>
         i === index ? { ...item, checked: !item.checked } : item
@@ -102,31 +168,42 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
     setIsSharePopupOpen(false);
   };
 
-  // Handle new chat button click with main content refresh
-  const handleNewChatClick = () => {
-    // Clear previous chat and reset interface
-    const mainContentElement = document.getElementById("main-content");
-    if (mainContentElement) {
-      // First, clear any chat messages or content
-      mainContentElement.innerHTML = "";
+  // Handle opening a specific chat
+  const handleOpenChat = (chatId) => {
+    setActiveChat(chatId);
 
-      // Then, trigger the welcome screen
-      setShowWelcome(true);
-    }
+    // Dispatch custom event to notify MainContent to load this chat
+    const openChatEvent = new CustomEvent("openChatEvent", {
+      detail: { chatId },
+    });
+    document.dispatchEvent(openChatEvent);
 
-    // Notify the parent component to reset/clear chat state
-    openChat(true); // Pass true to indicate it's a new chat (modify openChat function accordingly)
+    setShowWelcome(false);
 
     // Close sidebar on mobile
     if (window.innerWidth < 768) {
       setIsChatHistoryOpen(false);
     }
+  };
+
+  // Handle new chat button click
+  const handleNewChatClick = () => {
+    // Clear active chat
+    setActiveChat(null);
+
+    // Clear previous chat and reset interface
+    setShowWelcome(true);
 
     // Dispatch a custom event that the main content can listen for
     const refreshEvent = new CustomEvent("refreshMainContent", {
       detail: { isNewChat: true },
     });
     document.dispatchEvent(refreshEvent);
+
+    // Close sidebar on mobile
+    if (window.innerWidth < 768) {
+      setIsChatHistoryOpen(false);
+    }
   };
 
   const filteredChatItems = chatItems.filter(
@@ -134,6 +211,9 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
       item.name.toLowerCase().includes(search.toLowerCase()) ||
       item.description.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Check if any chats are selected for deletion
+  const hasSelectedChats = chatItems.some((item) => item.checked);
 
   return (
     <>
@@ -183,16 +263,31 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
               />
             </div>
           </div>
-          <button
-            onClick={openSharePopup}
-            className={`px-3 md:px-6 py-1 md:py-2 rounded-lg text-xs md:text-sm font-medium ${
-              theme === "light"
-                ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                : "bg-[#a4a9ad] text-black hover:bg-[#bcc2c9]"
-            } transition-colors w-full md:w-auto`}
-          >
-            Share
-          </button>
+          <div className="flex space-x-2 w-full md:w-auto">
+            {hasSelectedChats && (
+              <button
+                onClick={handleDeleteChat}
+                className={`px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm font-medium ${
+                  theme === "light"
+                    ? "bg-red-100 text-red-600 hover:bg-red-200"
+                    : "bg-red-800 text-red-200 hover:bg-red-700"
+                } transition-colors flex items-center`}
+              >
+                <MdOutlineDelete className="mr-1" />
+                Delete
+              </button>
+            )}
+            <button
+              onClick={openSharePopup}
+              className={`px-3 md:px-6 py-1 md:py-2 rounded-lg text-xs md:text-sm font-medium ${
+                theme === "light"
+                  ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  : "bg-[#a4a9ad] text-black hover:bg-[#bcc2c9]"
+              } transition-colors flex-grow md:flex-grow-0`}
+            >
+              Share
+            </button>
+          </div>
         </div>
         <hr
           className={`${
@@ -201,62 +296,70 @@ export default function ChatHistory({ theme, openChat, setShowWelcome }) {
         />
         {/* Chat items container */}
         <div className="flex-1 px-2 md:px-4 overflow-y-auto pb-20">
-          <div className="space-y-2 md:space-y-3">
-            {filteredChatItems.map((chat, index) => (
-              <div
-                key={chat.id}
-                className={`p-2 md:p-4 rounded-lg cursor-pointer transition-colors ${
-                  theme === "light"
-                    ? "bg-gray-50 hover:bg-gray-100"
-                    : "bg-[#1E2124] hover:bg-[#23262A]"
-                }`}
-                onClick={() => {
-                  openChat();
-                  setShowWelcome(false);
-                  if (window.innerWidth < 768) {
-                    setIsChatHistoryOpen(false);
-                  }
-                }}
-              >
-                <div className="flex items-start">
-                  <input
-                    type="checkbox"
-                    checked={chat.checked || false}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      handleCheckboxChange(chatItems.indexOf(chat));
-                    }}
-                    className="mt-1 w-3 h-3 md:w-4 md:h-4 rounded border-gray-500 text-emerald-500 focus:ring-emerald-500 bg-transparent flex-shrink-0 mr-1 md:mr-2"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <h3
-                        className={`text-xs md:text-sm font-medium ${
-                          theme === "light" ? "text-gray-900" : "text-white"
-                        } truncate max-w-full`}
-                      >
-                        {chat.name}
-                      </h3>
-                      <span
+          {isLoading ? (
+            <div className="flex justify-center items-center h-24">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
+            </div>
+          ) : filteredChatItems.length > 0 ? (
+            <div className="space-y-2 md:space-y-3">
+              {filteredChatItems.map((chat, index) => (
+                <div
+                  key={chat.id}
+                  className={`p-2 md:p-4 rounded-lg cursor-pointer transition-colors ${
+                    activeChat === chat.id
+                      ? theme === "light"
+                        ? "bg-gray-200"
+                        : "bg-[#2C2F33]"
+                      : theme === "light"
+                      ? "bg-gray-50 hover:bg-gray-100"
+                      : "bg-[#1E2124] hover:bg-[#23262A]"
+                  }`}
+                  onClick={() => handleOpenChat(chat.id)}
+                >
+                  <div className="flex items-start">
+                    <input
+                      type="checkbox"
+                      checked={chat.checked || false}
+                      onChange={(e) => handleCheckboxChange(index, e)}
+                      className="mt-1 w-3 h-3 md:w-4 md:h-4 rounded border-gray-500 text-emerald-500 focus:ring-emerald-500 bg-transparent flex-shrink-0 mr-1 md:mr-2"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <h3
+                          className={`text-xs md:text-sm font-medium ${
+                            theme === "light" ? "text-gray-900" : "text-white"
+                          } truncate max-w-full`}
+                        >
+                          {chat.name}
+                        </h3>
+                        <span
+                          className={`text-xs hidden sm:block md:block ${
+                            theme === "light"
+                              ? "text-gray-600"
+                              : "text-gray-400"
+                          } flex-shrink-0 ml-1`}
+                        >
+                          {chat.time}
+                        </span>
+                      </div>
+                      <p
                         className={`text-xs hidden sm:block md:block ${
                           theme === "light" ? "text-gray-600" : "text-gray-400"
-                        } flex-shrink-0 ml-1`}
+                        } truncate mt-1`}
                       >
-                        {chat.time}
-                      </span>
+                        {chat.description}
+                      </p>
                     </div>
-                    <p
-                      className={`text-xs hidden sm:block md:block ${
-                        theme === "light" ? "text-gray-600" : "text-gray-400"
-                      } truncate mt-1`}
-                    >
-                      {chat.description}
-                    </p>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-32 text-gray-500">
+              <BiMessage className="w-8 h-8 mb-2" />
+              <p className="text-sm">No chats found</p>
+            </div>
+          )}
         </div>
         {/* Fixed new chat button */}
         <div

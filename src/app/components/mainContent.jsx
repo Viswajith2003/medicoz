@@ -2,24 +2,68 @@ import React, { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Edit2 } from "lucide-react";
 import axios from "axios";
 
+const API_BASE_URL = "http://localhost:7000";
+
 const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
+  const [currentChatId, setCurrentChatId] = useState(null);
   const messagesEndRef = useRef(null);
 
+  // Get auth token from localStorage
+  const getAuthToken = () => localStorage.getItem("token");
+
   useEffect(() => {
-    const handleRefresh = () => {
+    const handleRefresh = (event) => {
       setMessages([]);
+      setCurrentChatId(null);
       setShowWelcome(true);
     };
 
+    const handleOpenChat = (event) => {
+      if (event.detail && event.detail.chatId) {
+        loadChatHistory(event.detail.chatId);
+      }
+    };
+
     document.addEventListener("refreshMainContent", handleRefresh);
+    document.addEventListener("openChatEvent", handleOpenChat);
+
     return () => {
       document.removeEventListener("refreshMainContent", handleRefresh);
+      document.removeEventListener("openChatEvent", handleOpenChat);
     };
   }, [setShowWelcome]);
+
+  const loadChatHistory = async (chatId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/chat/${chatId}`, {
+        headers: { Authorization: getAuthToken() },
+      });
+
+      if (response.data) {
+        setCurrentChatId(chatId);
+
+        // Transform messages to the format expected by the UI
+        const formattedMessages = response.data.map((msg) => ({
+          text: msg.content,
+          sender: msg.role,
+          timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          id: msg._id,
+        }));
+
+        setMessages(formattedMessages);
+        setShowWelcome(false);
+      }
+    } catch (error) {
+      console.error("Error loading chat history:", error);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -71,6 +115,54 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
       return "I'm sorry, I encountered an error while processing your request. Please try again later.";
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Save message to the backend
+  const saveMessage = async (role, content) => {
+    try {
+      if (currentChatId) {
+        // Add message to existing chat
+        const response = await axios.post(
+          `${API_BASE_URL}/chat/${currentChatId}`,
+          {
+            role,
+            content,
+          },
+          {
+            headers: { Authorization: getAuthToken() },
+          }
+        );
+        return response.data;
+      } else {
+        // Create new chat
+        const response = await axios.post(
+          `${API_BASE_URL}/chat/new`,
+          {
+            role,
+            content,
+          },
+          {
+            headers: { Authorization: getAuthToken() },
+          }
+        );
+
+        // Set the new chat ID
+        if (response.data && response.data._id) {
+          setCurrentChatId(response.data._id);
+
+          // Dispatch an event to update the chat list
+          document.dispatchEvent(
+            new CustomEvent("chatCreated", {
+              detail: { chatId: response.data._id, title: response.data.title },
+            })
+          );
+        }
+        return response.data;
+      }
+    } catch (error) {
+      console.error("Error saving message:", error);
+      return null;
     }
   };
 
@@ -139,12 +231,18 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
         setEditingMessageId(null);
         setInputText("");
       } else {
-        // Add new message
-        setMessages([
-          ...messages,
-          { text: userMessage, sender: "user", timestamp, id: Date.now() },
-        ]);
+        // Add new message to UI
+        const userMsgObj = {
+          text: userMessage,
+          sender: "user",
+          timestamp,
+          id: Date.now(),
+        };
+        setMessages([...messages, userMsgObj]);
         setInputText("");
+
+        // Save user message to backend
+        const savedUserMsg = await saveMessage("user", userMessage);
 
         // Add typing indicator
         setMessages((prev) => [
@@ -154,6 +252,9 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
 
         // Get response from API
         const response = await callChatAPI(userMessage);
+
+        // Save bot response to backend
+        const savedBotMsg = await saveMessage("bot", response);
 
         // Remove typing indicator and add actual response
         setMessages((prev) => {
@@ -241,6 +342,9 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
           }
           return updated;
         });
+
+        // Save regenerated response to backend
+        saveMessage("bot", response);
       });
     }
   };
@@ -267,6 +371,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
       className={`flex flex-col h-screen w-full md:w-3/4 ${
         theme === "light" ? "bg-gray-50" : "bg-[#131619]"
       }`}
+      id="main-content"
     >
       {showWelcome ? (
         <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-12 overflow-y-auto">
