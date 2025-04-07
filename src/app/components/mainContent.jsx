@@ -128,7 +128,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
 
   const callChatAPI = async (userMessage) => {
     setIsLoading(true);
-    const apiUrl = "https://medicoz-rag-api-production.up.railway.app/query";
+    const apiUrl = "https://23a0-52-6-180-21.ngrok-free.app/query";
     console.log("Calling API at:", apiUrl);
     try {
       const response = await axios.post(
