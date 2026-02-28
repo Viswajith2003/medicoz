@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { verifyToken } = require("../middleware/auth");
@@ -21,12 +20,11 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       firstName,
       lastName,
       email,
-      password: hashedPassword,
+      password: password,
     });
     await newUser.save();
 
@@ -50,7 +48,7 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Email not found" });
     }
 
-    if (!(await bcrypt.compare(password, user.password))) {
+    if (user.password !== password) {
       return res.status(401).json({ message: "Password incorrect" });
     }
 

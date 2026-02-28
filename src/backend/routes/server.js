@@ -27,6 +27,7 @@ mongoose
 // Routes
 app.use('/', require('./auth'));
 app.use('/chat', require('./chat'));
+app.use('/admin', require('./admin'));
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {

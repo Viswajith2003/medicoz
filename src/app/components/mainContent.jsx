@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, Edit2 } from "lucide-react";
 import axios from "axios";
 
-const API_BASE_URL = "https://medicoz-backend.vercel.app";
+const API_BASE_URL = "http://localhost:7000";
 
 const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [messages, setMessages] = useState([]);
@@ -126,28 +126,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
     }
   };
 
-  const callChatAPI = async (userMessage) => {
-    setIsLoading(true);
-    const apiUrl = "https://23a0-52-6-180-21.ngrok-free.app/query";
-    console.log("Calling API at:", apiUrl);
-    try {
-      const response = await axios.post(
-        apiUrl,
-        { question: userMessage },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      console.log("API Response:", response.data);
-      return response.data.response;
-    } catch (error) {
-      if (error.response) {
-        console.error("Response Data:", error.response.data);
-        console.error("Status:", error.response.status);
-      }
-      return "I'm sorry, I encountered an error while processing your request. Please try again later.";
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   // Save message to the backend
   const saveMessage = async (role, content) => {
@@ -241,32 +220,32 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
             setMessages(updatedMessages);
 
             // Get new response based on the edited message
-            const response = await callChatAPI(userMessage);
+            setIsLoading(true);
+            const updatedSession = await saveMessage("user", userMessage);
+            setIsLoading(false);
 
-            // Update the bot response
-            setMessages((prevMessages) => {
-              const newMessages = [...prevMessages];
-              const typingIndex = newMessages.findIndex((msg) => msg.isTyping);
+            if (updatedSession && updatedSession.messages) {
+              const assistantMsg = updatedSession.messages[updatedSession.messages.length - 1];
+              
+              // Update the bot response
+              setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                const typingIndex = newMessages.findIndex((msg) => msg.isTyping);
 
-              if (typingIndex !== -1) {
-                newMessages[typingIndex] = {
-                  text: response,
-                  sender: "bot",
-                  timestamp: getCurrentTimestamp(),
-                  id: Date.now(),
-                };
-              }
+                if (typingIndex !== -1) {
+                  newMessages[typingIndex] = {
+                    text: assistantMsg.content,
+                    sender: "bot",
+                    timestamp: getCurrentTimestamp(),
+                    id: assistantMsg._id || Date.now(),
+                  };
+                }
 
-              return newMessages;
-            });
-
-            // Save the updated bot response
-            if (currentChatId) {
-              // Find the bot message ID if available
-              const botMessageId = updatedMessages[nextBotIndex]?.id;
-
-              // Update the bot message in the database
-              await saveMessage("bot", response);
+                return newMessages;
+              });
+            } else {
+              // Handle error case
+              setMessages((prev) => prev.filter((msg) => !msg.isTyping));
             }
           } else {
             // Just update the user message if there's no bot response to regenerate
@@ -288,37 +267,31 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
         setMessages([...messages, userMsgObj]);
         setInputText("");
 
-        // Save user message to backend and get the chat ID if it's a new chat
-        const savedUserMsg = await saveMessage("user", userMessage);
+        // Save message to backend and get the full session back (includes AI response)
+        setIsLoading(true);
+        const updatedSession = await saveMessage("user", userMessage);
+        setIsLoading(false);
 
-        // Add typing indicator
-        setMessages((prev) => [
-          ...prev,
-          { text: "...", sender: "bot", isTyping: true },
-        ]);
-
-        // Get response from API
-        const response = await callChatAPI(userMessage);
-
-        // Wait a brief moment to ensure the chat ID is set (if it was a new chat)
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Save bot response to backend
-        const savedBotMsg = await saveMessage("bot", response);
-
-        // Remove typing indicator and add actual response
-        setMessages((prev) => {
-          const filtered = prev.filter((msg) => !msg.isTyping);
-          return [
-            ...filtered,
-            {
-              text: response,
-              sender: "bot",
-              timestamp: getCurrentTimestamp(),
-              id: Date.now(),
-            },
-          ];
-        });
+        if (updatedSession && updatedSession.messages) {
+          const assistantMsg = updatedSession.messages[updatedSession.messages.length - 1];
+          
+          // Remove typing indicator and add actual response
+          setMessages((prev) => {
+            const filtered = prev.filter((msg) => !msg.isTyping);
+            return [
+              ...filtered,
+              {
+                text: assistantMsg.content,
+                sender: "bot",
+                timestamp: getCurrentTimestamp(),
+                id: assistantMsg._id || Date.now(),
+              },
+            ];
+          });
+        } else {
+          // Handle error case
+          setMessages((prev) => prev.filter((msg) => !msg.isTyping));
+        }
       }
     }
   };
@@ -378,23 +351,27 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
       });
       setMessages(newMessages);
 
-      callChatAPI(userMessage).then((response) => {
-        setMessages((prev) => {
-          const updated = [...prev];
-          const typingIndex = updated.findIndex((msg) => msg.isTyping);
-          if (typingIndex !== -1) {
-            updated.splice(typingIndex, 1, {
-              text: response,
-              sender: "bot",
-              timestamp: getCurrentTimestamp(),
-              id: Date.now(),
-            });
-          }
-          return updated;
-        });
-
-        // Save regenerated response to backend
-        saveMessage("bot", response);
+      setIsLoading(true);
+      saveMessage("user", userMessage).then((updatedSession) => {
+        setIsLoading(false);
+        if (updatedSession && updatedSession.messages) {
+          const assistantMsg = updatedSession.messages[updatedSession.messages.length - 1];
+          setMessages((prev) => {
+            const updated = [...prev];
+            const typingIndex = updated.findIndex((msg) => msg.isTyping);
+            if (typingIndex !== -1) {
+              updated.splice(typingIndex, 1, {
+                text: assistantMsg.content,
+                sender: "bot",
+                timestamp: getCurrentTimestamp(),
+                id: assistantMsg._id || Date.now(),
+              });
+            }
+            return updated;
+          });
+        } else {
+          setMessages((prev) => prev.filter((msg) => !msg.isTyping));
+        }
       });
     }
   };

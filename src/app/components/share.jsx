@@ -6,7 +6,7 @@ import {
   Mail,
   Twitter,
   Facebook,
-  LinkedIn,
+  Linkedin,
   Check,
   Users,
   Globe,
@@ -292,7 +292,7 @@ const SharePopup = ({ isOpen, onClose, theme }) => {
               {[
                 { name: "Twitter", icon: Twitter, color: "bg-blue-400" },
                 { name: "Facebook", icon: Facebook, color: "bg-blue-600" },
-                { name: "LinkedIn", icon: LinkedIn, color: "bg-blue-700" },
+                { name: "LinkedIn", icon: Linkedin, color: "bg-blue-700" },
                 {
                   name: "Copy Link",
                   icon: copied ? Check : Copy,

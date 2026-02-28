@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# MediCoz: AI-Enhanced Medical Chatbot Using RAG
 
-## Getting Started
+## Overview
+MediCoz is a specialized AI-powered medical chatbot that leverages **Retrieval-Augmented Generation (RAG)** to provide accurate, verified medical information. Unlike standard AI models that might hallucinate or pull unverified data from the internet, MediCoz strictly answers based on trusted medical textbooks, research documents, and verified PDFs.
 
-First, run the development server:
+## 🏗️ Architecture
+The system follows a robust RAG architecture to ensure medical accuracy:
+- **Data Source Layer**: Curated medical textbooks and verified research documents.
+- **Processing Engine**: Converts text into chunks, generates embeddings, and indexes them.
+- **Vector Database (Pinecone)**: Performs high-speed similarity searches to retrieve the most relevant medical context.
+- **LLM Layer**: Utilizes the **Mistral 7B** model via Hugging Face API for structured response generation.
 
+## 🔴 Problem Statement
+- **Information Overload**: Too many conflicting results when searching medical queries online.
+- **Accuracy Risks**: Unverified or misleading information leading to dangerous self-diagnosis.
+- **Hallucinations**: standard LLMs may provide confident but factually incorrect medical advice.
+
+## ✅ Proposed Solution
+MediCoz solves these issues by creating a **closed-loop knowledge base**. If the information is not present in its verified document set, the system will explicitly state: *"Information not available in verified sources."*
+
+## 🛠️ Tech Stack
+- **Frontend**: Next.js (Modern, responsive Chat UI)
+- **Backend**: Express.js (Secure API & Business Logic)
+- **Database**: 
+  - **MongoDB**: Authentication & Chat History storage.
+  - **Pinecone**: Vector Database for RAG context retrieval.
+- **AI/ML**: 
+  - **Mistral 7B**: Core Large Language Model.
+  - **Hugging Face API**: Model hosting and inference.
+  - **Embeddings**: Text-to-vector conversion for medical documents.
+
+## 🔄 Complete Working Flow
+1. **User Query**: User asks a question via the Next.js frontend.
+2. **Backend Processing**: Express.js receives the request and converts the query into an embedding.
+3. **Context Retrieval**: The system searches Pinecone for the most similar chunks from verified medical PDFs.
+4. **Augmented Prompting**: The retrieved context + the original question are sent to the Mistral 7B model.
+5. **Verified Response**: The LLM generates a response strictly tied to the provided context.
+6. **Persistence**: The chat history is saved to MongoDB for future reference.
+
+## 🌟 Key Advantages
+- **High Accuracy**: Answers are grounded in real medical literature.
+- **Reduced Hallucinations**: The model is restricted to the provided documents.
+- **Secure**: User data and chat history are protected via secure authentication.
+- **Controlled Knowledge**: No random internet data is used in the generation.
+
+## ⚠️ Limitations
+- **Knowledge Scope**: Only answers based on uploaded documents.
+- **Maintenance**: Requires periodic updates to the document library.
+- **Professional Advice**: This is an informational tool and **not a replacement for professional medical consultation**.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js & npm
+- MongoDB (Running locally or on Atlas)
+- Pinecone API Key
+- Hugging Face API Key
+
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Running the Project
+You need to run both the frontend and the backend:
+
+**Terminal 1 (Frontend):**
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Terminal 2 (Backend):**
+```bash
+npm run backend
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*MediCoz: Your Trusted Partner in Smart, Seamless Healthcare.*
