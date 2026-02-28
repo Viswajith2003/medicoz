@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, Edit2 } from "lucide-react";
+import { Send, Paperclip, Edit2, Bot, User, Sparkles } from "lucide-react";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 
 const API_BASE_URL = "http://localhost:7000";
 
@@ -105,9 +106,9 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   }, [messages]);
 
   const features = [
-    "Ask Medical Questions: Get instant, reliable answers.",
-    "Manage Appointments & Medication: Stay on track effortlessly.",
-    "Personalized Health Advice: Tailored to your needs.",
+    { text: "Ask Medical Questions: Get instant, reliable answers.", icon: <Sparkles className="w-5 h-5 text-blue-400" /> },
+    { text: "Manage Appointments & Medication: Stay on track effortlessly.", icon: <Sparkles className="w-5 h-5 text-green-400" /> },
+    { text: "Personalized Health Advice: Tailored to your needs.", icon: <Sparkles className="w-5 h-5 text-purple-400" /> },
   ];
 
   const getCurrentTimestamp = () => {
@@ -125,8 +126,6 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
       setShowWelcome(true);
     }
   };
-
-
 
   // Save message to the backend
   const saveMessage = async (role, content) => {
@@ -306,12 +305,13 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      const timestamp = getCurrentTimestamp();
       setMessages([
         ...messages,
         {
           text: `Uploaded file: ${file.name}`,
           sender: "user",
-          timestamp: getCurrentTimestamp(),
+          timestamp: timestamp,
           id: Date.now(),
         },
       ]);
@@ -396,159 +396,249 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   return (
     <div
       className={`flex flex-col h-screen w-full md:w-3/4 ${
-        theme === "light" ? "bg-gray-50" : "bg-[#131619]"
-      }`}
+        theme === "light" ? "bg-gray-50 text-gray-900" : "bg-[#131619] text-white"
+      } transition-colors duration-500`}
       id="main-content"
     >
-      {showWelcome ? (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-12 overflow-y-auto">
-          <div className="max-w-6xl w-full">
-            <h1
-              className={`font-bold text-2xl sm:text-4xl md:text-6xl text-center mb-6 ${
-                theme === "light" ? "text-gray-900" : "text-white"
-              }`}
-            >
-              Welcome to Medicoz
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-400 text-center mb-8 md:mb-12">
-              "AI Enhanced ChatBot for Medical Assistance"
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className={`p-4 md:p-6 rounded-xl ${
-                    theme === "light"
-                      ? "bg-white shadow-lg text-black"
-                      : "bg-[#222425] text-white"
-                  }`}
+      <AnimatePresence mode="wait">
+        {showWelcome ? (
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 md:px-12 py-10 overflow-y-auto scrollbar-hide"
+          >
+            <div className="max-w-5xl w-full text-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="mb-6 md:mb-8 inline-block p-4 rounded-3xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 border border-white/5 backdrop-blur-sm"
+              >
+                <img src="/logo.png" alt="Medicoz" className="w-14 h-14 md:w-20 md:h-20 object-contain" />
+              </motion.div>
+              
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.8 }}
+                className={`font-black text-3xl sm:text-5xl md:text-7xl mb-6 md:mb-8 tracking-tighter ${
+                  theme === "light" ? "text-gray-900" : "text-white"
+                }`}
+              >
+                Welcome to{" "}
+                <motion.span 
+                  animate={{ 
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                  }}
+                  transition={{ 
+                    duration: 5, 
+                    repeat: Infinity, 
+                    ease: "linear" 
+                  }}
+                  className="bg-gradient-to-r from-blue-600 via-emerald-400 to-indigo-600 bg-[length:200%_auto] bg-clip-text text-transparent drop-shadow-sm inline-block"
                 >
-                  <p className="text-sm sm:text-base md:text-lg">{feature}</p>
-                </div>
-              ))}
-            </div>
-            <p className="text-base md:text-lg text-gray-300 text-center">
-              "Let's make healthcare simple, smart, and accessible."
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col relative">
-          <div className="absolute inset-0 flex flex-col">
-            <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6">
-              <div className="space-y-4 sm:space-y-6">
-                {messages.map((message, index) => (
-                  <div
+                  Medicoz
+                </motion.span>
+              </motion.h1>
+              
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="text-lg sm:text-xl md:text-2xl text-gray-400 mb-10 md:mb-12 max-w-2xl mx-auto font-medium"
+              >
+                Your AI-Enhanced Medical Assistant for reliable health information and support.
+              </motion.p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-12 md:mb-16">
+                {features.map((feature, index) => (
+                  <motion.div
                     key={index}
-                    className={`flex ${
-                      message.sender === "user"
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 + index * 0.1, duration: 0.5 }}
+                    whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                    className={`p-8 rounded-2xl border ${
+                      theme === "light"
+                        ? "bg-white shadow-xl border-gray-100"
+                        : "bg-[#1b1c21] border-gray-800"
+                    } text-left group transition-all cursor-default overflow-hidden relative`}
                   >
-                    {message.sender === "bot" && !message.isTyping && (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 mr-2 sm:mr-3 rounded-full flex items-center justify-center">
-                        <img
-                          src="/logo.png"
-                          alt="M"
-                          className="h-5 w-5 sm:h-6 sm:w-6"
-                        />
-                      </div>
-                    )}
-                    <div className="flex flex-col max-w-[80%] sm:max-w-[70%]">
-                      <div
-                        className={`rounded-xl p-3 sm:p-4 ${
-                          message.sender === "user"
-                            ? theme === "light"
-                              ? "bg-[#94a1e7] text-black"
-                              : "bg-[#0b3183] text-white"
-                            : theme === "light"
-                            ? "bg-gray-200 text-black"
-                            : "bg-[#222425] text-white"
-                        }`}
-                      >
-                        {message.isTyping ? (
-                          <div className="flex space-x-2">
-                            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400 animate-bounce"></div>
-                            <div
-                              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400 animate-bounce"
-                              style={{ animationDelay: "0.2s" }}
-                            ></div>
-                            <div
-                              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-gray-400 animate-bounce"
-                              style={{ animationDelay: "0.4s" }}
-                            ></div>
-                          </div>
-                        ) : (
-                          <div className="text-sm sm:text-base">
-                            {message.text}
-                          </div>
-                        )}
-                      </div>
-
-                      {message.timestamp && (
-                        <div className="text-xs text-gray-500 mt-1 ml-1">
-                          {message.timestamp}
-                          {message.edited && (
-                            <span className="ml-1">(edited)</span>
-                          )}
-
-                          {message.sender === "bot" && !message.isTyping && (
-                            <div className="flex flex-wrap items-center mt-1 space-x-2">
-                              <button
-                                onClick={() => handleCopy(message.text)}
-                                className="text-xs text-gray-400 hover:text-gray-300"
-                              >
-                                Copy
-                              </button>
-                              <button
-                                onClick={() => handleRegenerateResponse(index)}
-                                className="text-xs text-gray-400 hover:text-gray-300 flex items-center"
-                              >
-                                Regenerate
-                                <span className="ml-1">🔄</span>
-                              </button>
+                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 mb-4 group-hover:scale-110 transition-transform">
+                      {feature.icon}
+                    </div>
+                    <p className="text-lg leading-relaxed">{feature.text}</p>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.2, duration: 0.5 }}
+                className="text-base md:text-lg text-gray-500 font-medium italic"
+              >
+                "Empowering healthcare through clinical intelligence."
+              </motion.p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex-1 flex flex-col relative overflow-hidden"
+          >
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-12 py-8 scrollbar-hide">
+              <div className="space-y-8 max-w-4xl mx-auto">
+                <AnimatePresence initial={false}>
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={message.id || index}
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.4 }}
+                      className={`flex ${
+                        message.sender === "user" ? "justify-end" : "justify-start"
+                      } group`}
+                    >
+                      {message.sender === "bot" && (
+                        <div className="w-10 h-10 mr-3 hidden sm:flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 shadow-lg shadow-blue-500/20">
+                          <Bot className="w-6 h-6 text-white" />
+                        </div>
+                      )}
+                      
+                      <div className={`flex flex-col max-w-[85%] sm:max-w-[75%] ${
+                        message.sender === "user" ? "items-end" : "items-start"
+                      }`}>
+                        <div
+                          className={`relative rounded-2xl p-4 sm:p-5 shadow-sm ${
+                            message.sender === "user"
+                              ? theme === "light"
+                                ? "bg-blue-600 text-white"
+                                : "bg-blue-600 text-white"
+                              : theme === "light"
+                              ? "bg-white border border-gray-100 text-gray-800"
+                              : "bg-[#1b1c21] border border-gray-800 text-white"
+                          } ${
+                            message.sender === "user" 
+                              ? "rounded-tr-none" 
+                              : "rounded-tl-none"
+                          } transition-all duration-300 hover:shadow-md`}
+                        >
+                          {message.isTyping ? (
+                            <div className="flex space-x-1.5 px-2 py-1">
+                              {[0, 1, 2].map((i) => (
+                                <motion.div
+                                  key={i}
+                                  animate={{ y: [0, -6, 0] }}
+                                  transition={{
+                                    duration: 0.6,
+                                    repeat: Infinity,
+                                    delay: i * 0.15,
+                                  }}
+                                  className="w-2 h-2 rounded-full bg-blue-400"
+                                />
+                              ))}
                             </div>
-                          )}
-
-                          {message.sender === "user" && (
-                            <div className="flex items-center mt-1 space-x-2">
-                              <button
-                                onClick={() => handleEditMessage(index)}
-                                className="text-xs text-gray-400 hover:text-gray-300 flex items-center"
-                              >
-                                Edit
-                                <Edit2 className="ml-1 w-3 h-3" />
-                              </button>
+                          ) : (
+                            <div className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+                              {message.text}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
 
-                    {message.sender === "user" && (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 ml-2 sm:ml-3 rounded-full flex items-center justify-center">
-                        <span className="text-white text-base sm:text-lg">
-                          👤
-                        </span>
+                        {!message.isTyping && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className={`flex items-center gap-3 mt-2 px-1 text-[11px] font-medium text-gray-500 ${
+                              message.sender === "user" ? "flex-row-reverse" : "flex-row"
+                            }`}
+                          >
+                            <span>{message.timestamp}</span>
+                            {message.edited && <span className="text-blue-400">Edited</span>}
+                            
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-3">
+                              {message.sender === "bot" ? (
+                                <>
+                                  <button
+                                    onClick={() => handleCopy(message.text)}
+                                    className="hover:text-blue-400 transition-colors uppercase tracking-wider"
+                                  >
+                                    Copy
+                                  </button>
+                                  <button
+                                    onClick={() => handleRegenerateResponse(index)}
+                                    className="hover:text-blue-400 transition-colors uppercase tracking-wider flex items-center gap-1"
+                                  >
+                                    Retake 🔄
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  onClick={() => handleEditMessage(index)}
+                                  className="hover:text-blue-400 transition-colors uppercase tracking-wider flex items-center gap-1"
+                                >
+                                  Edit <Edit2 size={10} />
+                                </button>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {message.sender === "user" && (
+                        <div className="w-10 h-10 ml-3 hidden sm:flex items-center justify-center rounded-xl bg-gray-200 dark:bg-gray-800 shadow-sm border border-gray-300 dark:border-gray-700">
+                          <User className={`w-6 h-6 ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`} />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
                 <div ref={messagesEndRef} />
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-inherit">
-        <div className="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-8 py-3 sm:py-6">
+      <motion.div
+        layout
+        className={`border-t ${
+          theme === "light" ? "bg-white border-gray-100" : "bg-[#131619] border-gray-800"
+        } px-4 py-4 md:px-12 md:py-8 sticky bottom-0 z-20`}
+      >
+        <div className="max-w-4xl mx-auto w-full">
           <div
-            className={`flex items-center p-2 sm:p-4 rounded-xl ${
-              theme === "light" ? "bg-white shadow-md" : "bg-[#1b1c21]"
+            className={`flex items-center gap-2 p-1.5 rounded-2xl border transition-all duration-300 ${
+              theme === "light"
+                ? "bg-gray-50 border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 shadow-sm"
+                : "bg-[#1b1c21] border-gray-800 focus-within:border-blue-500/50 shadow-lg"
             }`}
           >
+            <div className="flex items-center pl-3">
+              <label
+                htmlFor="chat-file"
+                className={`p-2 rounded-xl cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-all ${
+                  isLoading ? "opacity-40 cursor-not-allowed" : "text-gray-400 hover:text-blue-400"
+                }`}
+              >
+                <Paperclip className="w-5 h-5" />
+                <input
+                  type="file"
+                  className="hidden"
+                  id="chat-file"
+                  onChange={handleFileUpload}
+                  disabled={isLoading}
+                />
+              </label>
+            </div>
+
             <input
               type="text"
               value={inputText}
@@ -556,55 +646,76 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
               onKeyPress={handleKeyPress}
               placeholder={
                 editingMessageId !== null
-                  ? "Edit your message..."
-                  : "Ask anything you want..."
+                  ? "Correcting your query..."
+                  : "How can Medicoz help you today?"
               }
-              className="flex-1 bg-transparent border-none outline-none px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-base md:text-lg dark:text-white"
+              className={`flex-1 bg-transparent border-none outline-none px-4 py-3 text-sm sm:text-base ${
+                theme === "light" ? "text-gray-800" : "text-white"
+              } placeholder-gray-500`}
               disabled={isLoading}
             />
-            <div className="flex items-center gap-1 sm:gap-2">
-              {editingMessageId === null && (
-                <label
-                  htmlFor="chat-file"
-                  className={`p-1 sm:p-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                    isLoading ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  <Paperclip className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
-                  <input
-                    type="file"
-                    className="hidden"
-                    id="chat-file"
-                    onChange={handleFileUpload}
-                  />
-                </label>
-              )}
-              <button
-                onClick={handleSendMessage}
-                className={`p-1 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                  isLoading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={isLoading}
-              >
-                <Send className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
-              </button>
+
+            <div className="flex items-center gap-2 pr-1.5">
               {editingMessageId !== null && (
                 <button
                   onClick={() => {
                     setEditingMessageId(null);
                     setInputText("");
                   }}
-                  className="p-1 sm:p-2 text-xs sm:text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  className="px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-red-400 uppercase tracking-wider transition-colors"
                 >
                   Cancel
                 </button>
               )}
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSendMessage}
+                disabled={isLoading || !inputText.trim()}
+                className={`p-3 rounded-xl shadow-lg transition-all ${
+                  isLoading || !inputText.trim()
+                    ? "bg-gray-300 dark:bg-gray-800 text-gray-500 opacity-50 cursor-not-allowed"
+                    : "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/30 active:shadow-inner"
+                }`}
+              >
+                {isLoading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Loader className="w-5 h-5" />
+                  </motion.div>
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </motion.button>
             </div>
           </div>
+          
+          <div className="mt-3 text-center">
+            <p className="text-[10px] sm:text-xs text-gray-500 select-none">
+              Medicoz provided information based on clinical docs. Verify with a professional.
+            </p>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
+
+const Loader = ({ className }) => (
+  <svg 
+    className={className} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="3" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);
 
 export default MainContent;

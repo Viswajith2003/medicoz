@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { FaPowerOff, FaRegCircle } from "react-icons/fa";
+import { FaPowerOff } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import {
   MessageSquare,
   Search as SearchIcon,
   CreditCard,
-  HelpCircle,
   Settings,
   Sun,
   Moon,
   Menu,
   X,
+  ChevronDown,
+  Sparkles,
+  LayoutDashboard
 } from "lucide-react";
 import { IoSquareOutline } from "react-icons/io5";
 import { FiTriangle } from "react-icons/fi";
-import { IoMdAddCircleOutline } from "react-icons/io";
-import { ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import SettingsModal from "./settings.jsx";
 import SubscriptionModal from "./subscription.jsx";
 
@@ -27,41 +28,42 @@ export default function Sidebar({
   onLogout,
   user,
 }) {
+  const [activeMenuItem, setActiveMenuItem] = useState("Dashboard");
   const [search, setSearch] = useState("");
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(true);
 
   const menuItems = [
     {
-      icon: <MessageSquare className="w-5 h-5 text-white" />,
-      text: "Chats",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      text: "Dashboard",
+      onClick: () => {
+        setActiveMenuItem("Dashboard");
+        document.dispatchEvent(new CustomEvent("refreshMainContent"));
+      }
+    },
+    {
+      icon: <MessageSquare className="w-5 h-5" />,
+      text: "Messages",
       count: "8",
+      onClick: () => setActiveMenuItem("Messages")
     },
     {
-      icon: (
-        <div className="flex items-center">
-          <SearchIcon className="w-5 h-5 text-white mr-2" />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search"
-            className="bg-transparent w-full px-2 py-1 text-white focus:outline-none"
-          />
-        </div>
-      ),
-      text: "",
+      icon: <CreditCard className="w-5 h-5" />,
+      text: "Subscription",
+      onClick: () => {
+        setActiveMenuItem("Subscription");
+        setShowSubscriptionModal(true);
+      }
     },
     {
-      icon: <CreditCard className="w-5 h-5 text-white" />,
-      text: "subscription",
-      onClick: () => setShowSubscriptionModal(true),
-    },
-    {
-      icon: <Settings className="w-5 h-5 text-white" />,
+      icon: <Settings className="w-5 h-5" />,
       text: "Settings",
-      onClick: () => setShowSettingsModal(true),
+      onClick: () => {
+        setActiveMenuItem("Settings");
+        setShowSettingsModal(true);
+      }
     },
   ];
 
@@ -84,151 +86,263 @@ export default function Sidebar({
     setIsOpen(!isOpen);
   };
 
+  const sidebarVariants = {
+    open: {
+      x: 0,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    },
+    closed: {
+      x: "-100%",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30
+      }
+    }
+  };
+
+  const itemVariants = {
+    open: { opacity: 1, x: 0 },
+    closed: { opacity: 0, x: -20 }
+  };
+
   return (
     <>
-      {/* Mobile menu button - Menu on left, only shown when sidebar is closed */}
-      {!isOpen && (
-        <button
+      <div className="md:hidden fixed top-4 left-4 z-50 flex gap-2">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={toggleSidebar}
-          className="md:hidden fixed top-4 left-4 z-50 bg-[#050505] p-2 rounded-md"
+          className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/30 border border-blue-400"
         >
-          <Menu className="w-6 h-6 text-white" />
-        </button>
-      )}
+          {isOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+        </motion.button>
+      </div>
 
-      {/* Overlay for mobile - appears when sidebar is open */}
-      {isOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={toggleSidebar}
-        ></div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+            onClick={toggleSidebar}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Sidebar */}
-      <div
-        className={`w-64 bg-[#050505] py-2 pl-2 border-gray-800 flex flex-col fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } md:relative md:translate-x-0`}
+      <motion.div
+        variants={sidebarVariants}
+        initial="closed"
+        animate={isOpen ? "open" : "closed"}
+        className={`w-72 flex flex-col fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 border-r transition-colors duration-500 ${
+          theme === "light" 
+            ? "bg-white border-gray-200" 
+            : "bg-[#0d0e11] border-gray-800"
+        }`}
       >
-        <div className="p-5 flex items-center justify-between">
-          <div className="flex items-center">
-            <img src="/logo.png" alt="M" className="h-12 w-10" />
-            <span className="ml-4 text-white text-[24px] font-semibold">
+        <div className="p-8 pb-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <img src="/logo.png" alt="M" className="h-6 w-6 object-contain" />
+            </div>
+            <span className={`text-2xl font-bold tracking-tight ${
+              theme === "light" ? "text-gray-900" : "text-white"
+            }`}>
               MediCoz
             </span>
           </div>
-
-          {/* X button on right - only visible when sidebar is open */}
-          <button
-            onClick={toggleSidebar}
-            className="md:hidden bg-[#050505] p-1 rounded-md mr-2"
-          >
-            <X className="w-6 h-6 text-white" />
-          </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto">
-          <h1 className="text-[#9c9491f3] mt-5 mb-3 ml-4">General</h1>
-          <ul className="list-none pl-4">
-            {menuItems.map((item, index) => (
-              <li
-                key={index}
-                className="hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2 cursor-pointer"
-                onClick={item.onClick}
-              >
-                {item.icon}
-                <span className="flex-1">{item.text}</span>
-                {item.count && (
-                  <span className="text-xs bg-gray-800 px-2 py-1 rounded">
-                    {item.count}
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
+        <div className="px-6 mb-6">
+          <div className="relative group">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search history..."
+              className={`w-full border rounded-xl py-2.5 pl-10 pr-4 text-sm transition-all focus:outline-none ${
+                theme === "light"
+                  ? "bg-gray-50 border-gray-200 text-gray-900 focus:border-blue-500"
+                  : "bg-[#1b1c21] border-gray-800 text-white focus:border-blue-500/50"
+              }`}
+            />
+          </div>
+        </div>
 
-          <div className="pl-3 mt-8">
+        <nav className="flex-1 overflow-y-auto px-6 scrollbar-hide">
+          <div className="mb-8">
+            <h2 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 px-2">Menu</h2>
+            <ul className="space-y-1">
+              {menuItems.map((item, index) => {
+                const isActive = activeMenuItem === item.text;
+                return (
+                  <motion.li
+                    key={index}
+                    variants={itemVariants}
+                    whileHover={{ x: 4 }}
+                    className="group"
+                  >
+                    <button
+                      onClick={item.onClick}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                        isActive 
+                          ? (theme === "light" 
+                              ? "bg-blue-50 text-blue-600 shadow-sm border border-blue-100" 
+                              : "bg-blue-500/10 text-white border border-blue-500/20 ring-1 ring-blue-500/10")
+                          : (theme === "light"
+                              ? "text-gray-500 hover:text-blue-600 hover:bg-blue-50 border border-transparent"
+                              : "text-gray-400 hover:text-white hover:bg-gray-800/50 border border-transparent")
+                      }`}
+                    >
+                      <span className={`${
+                        isActive 
+                          ? (theme === "light" ? "text-blue-600" : "text-blue-400")
+                          : (theme === "light" ? "text-gray-400 group-hover:text-blue-600" : "text-gray-500 group-hover:text-blue-400")
+                      } transition-colors`}>
+                        {item.icon}
+                      </span>
+                      <span className="flex-1 text-left">{item.text}</span>
+                      {item.count && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          isActive
+                            ? "bg-blue-500 text-white border-blue-400"
+                            : (theme === "light"
+                                ? "bg-blue-100 text-blue-600 border-blue-200"
+                                : "bg-blue-500/10 text-blue-400 border-blue-500/20")
+                        }`}>
+                          {item.count}
+                        </span>
+                      )}
+                    </button>
+                  </motion.li>
+                );
+              })}
+            </ul>
+          </div>
+
+          <div>
             <button
-              className="w-52 flex items-center justify-between p-2 rounded-lg hover:bg-[#262729]"
+              className={`w-full flex items-center justify-between px-3 py-2 mb-2 rounded-xl transition-colors font-bold text-[10px] uppercase tracking-widest ${
+                theme === "light" ? "text-gray-400 hover:text-gray-600" : "text-gray-500 hover:text-gray-300"
+              }`}
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <span className="text-[#9c9491f3] ">Core Topics</span>
+              <span>Knowledge Base</span>
               <ChevronDown
-                className={`w-4 h-4 ml-2 transition-all ${
+                className={`w-3 h-3 transition-transform duration-300 ${
                   isDropdownOpen ? "rotate-180" : ""
                 }`}
               />
             </button>
-            {isDropdownOpen && (
-              <ul className="list-none pl-4 mt-2">
-                {chatCategories.map((item, index) => (
-                  <li
-                    key={index}
-                    className="hover:bg-[#262729] w-52 p-2 rounded-lg flex items-center gap-2"
-                  >
-                    <a href={item.to} className="flex items-center gap-2">
-                      <item.Icon style={{ color: item.color }} />
-                      <span>{item.name}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.ul
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="space-y-1 overflow-hidden"
+                >
+                  {chatCategories.map((item, index) => (
+                    <motion.li key={index} variants={itemVariants}>
+                      <a
+                        href={item.to}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
+                          theme === "light"
+                            ? "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                            : "text-gray-400 hover:text-white hover:bg-gray-800/50"
+                        }`}
+                      >
+                        <item.Icon className="w-4 h-4" style={{ color: item.color }} />
+                        <span>{item.name}</span>
+                        <Sparkles className={`w-3 h-3 ml-auto ${
+                          theme === "light" ? "text-yellow-600/30" : "text-yellow-500/40"
+                        }`} />
+                      </a>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              )}
+            </AnimatePresence>
           </div>
         </nav>
 
-        <div className="p-4 border-gray-800">
-          <div className="items-center mb-4 bg-[#222727] p-3 rounded-xl">
-            <div className="flex">
-              <div className="flex ">
-                <FaCircleUser className="w-8 h-8 rounded-full text-[#25f3f3]" />
-                <div className="ml-3 ">
-                  <div className="text-sm text-white">
-                    {user ? user.firstName : "Loading..."}
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {user ? user.email : "Loading..."}
-                  </div>
-                </div>
-              </div>
-              <div className="ml-auto">
-                <FaPowerOff
-                  className="mt-2 mr-4 text-white cursor-pointer"
-                  onClick={onLogout}
-                />
-              </div>
+        <div className={`p-6 border-t mt-auto backdrop-blur-xl transition-colors duration-500 ${
+          theme === "light" ? "bg-white/80 border-gray-200" : "bg-[#0d0e11]/80 border-gray-800"
+        }`}>
+          <motion.div 
+            whileHover={{ y: -2 }}
+            className={`flex items-center gap-3 mb-6 p-3 rounded-2xl border shadow-xl transition-all ${
+              theme === "light"
+                ? "bg-gray-50 border-gray-200"
+                : "bg-[#1b1c21] border-gray-800"
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ring-4 ${
+              theme === "light" ? "bg-blue-100 text-blue-600 ring-blue-50" : "bg-blue-500 text-white ring-blue-500/10"
+            }`}>
+              <FaCircleUser size={24} />
             </div>
-          </div>
-          <div className="flex items-center justify-between p-2 py-4 rounded-xl bg-[#222727] text-white">
-            <button
-              onClick={() => setTheme("light")}
-              className={`flex items-center hover:bg-[#000000] p-2 px-5 rounded-xl ${
-                theme === "light" ? "bg-[#000000]" : "bg-[#232627]"
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-bold truncate ${theme === "light" ? "text-gray-900" : "text-white"}`}>
+                {user ? `${user.firstName} ${user.lastName || ''}` : "Guest User"}
+              </p>
+              <p className="text-[10px] text-gray-500 truncate">
+                {user ? user.email : "medicoz-client v1.0"}
+              </p>
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={onLogout}
+              className={`p-2 transition-colors ${
+                theme === "light" ? "text-gray-400 hover:text-red-500" : "text-gray-500 hover:text-red-400"
               }`}
             >
-              <Sun className="w-4 h-4 mr-2 text-white" />
+              <FaPowerOff size={16} />
+            </motion.button>
+          </motion.div>
+
+          <div className={`flex p-1 rounded-xl border transition-colors ${
+            theme === "light" ? "bg-gray-100 border-gray-200" : "bg-[#1b1c21] border-gray-800"
+          }`}>
+            <button
+              onClick={() => setTheme("light")}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                theme === "light" 
+                  ? "bg-white text-blue-600 shadow-md border border-blue-100" 
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              <Sun size={14} />
               <span>Light</span>
             </button>
             <button
               onClick={() => setTheme("dark")}
-              className={`flex items-center hover:bg-[#000000] p-2 px-5 rounded-xl ${
-                theme === "dark" ? "bg-[#000000]" : "bg-[#232627]"
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                theme === "dark" 
+                  ? "bg-gray-800 text-white shadow-lg border border-gray-700" 
+                  : "text-gray-500 hover:text-gray-300"
               }`}
             >
-              <Moon className="w-4 h-4 mr-2 text-white" />
+              <Moon size={14} />
               <span>Dark</span>
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Settings Modal */}
       <SettingsModal
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
       />
 
-      {/* Subscription Modal */}
       <SubscriptionModal
         isOpen={showSubscriptionModal}
         onClose={() => setShowSubscriptionModal(false)}
