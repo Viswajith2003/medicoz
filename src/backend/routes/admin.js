@@ -6,7 +6,10 @@ const { verifyToken } = require("../middleware/auth");
 const { processAndIngest } = require("../services/ingestService");
 
 // In-memory Multer storage (since we process immediately)
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB
+});
 
 // Admin Login Route
 router.post("/login", async (req, res) => {
@@ -21,7 +24,7 @@ router.post("/login", async (req, res) => {
       const token = jwt.sign(
         { email, isAdmin: true },
         process.env.JWT_SECRET,
-        { expiresIn: "5h" }
+        { expiresIn: "7d" }
       );
       return res.json({ message: "Admin Login successful", token, isAdmin: true });
     } else {

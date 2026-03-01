@@ -17,7 +17,21 @@ export default function AdminPage() {
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
     if (token) {
-      setIsAdmin(true);
+      try {
+        // Simple check for JWT expiration without a library
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+          console.warn("Admin token expired");
+          localStorage.removeItem("adminToken");
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(true);
+        }
+      } catch (e) {
+        console.error("Invalid token found", e);
+        localStorage.removeItem("adminToken");
+        setIsAdmin(false);
+      }
     }
   }, []);
 
@@ -88,8 +102,18 @@ export default function AdminPage() {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error.response?.data?.message || "Upload failed. Please check the backend logs.",
+        text: error.response?.data?.debug 
+          ? `${error.response.data.message}: ${error.response.data.debug}`
+          : (error.response?.data?.message || "Upload failed. Please check the backend logs."),
       });
+
+      // Handle token expiration
+      if (error.response?.data?.debug === "jwt expired" || error.response?.status === 403) {
+        setTimeout(() => {
+          handleLogout();
+          setMessage({ type: "error", text: "Session expired. Please log in again." });
+        }, 2000);
+      }
     } finally {
       setLoading(false);
     }
@@ -219,7 +243,7 @@ export default function AdminPage() {
                     {file ? file.name : "Choose a PDF file or drag it here"}
                   </h4>
                   <p className="text-sm text-gray-500">
-                    Maximum file size: 50MB (PDF Only)
+                    Maximum file size: 100MB (PDF Only)
                   </p>
                 </div>
               </div>

@@ -11,7 +11,7 @@
  */
 
 const fs = require('fs');
-const pdf = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 const axios = require('axios');
 require('dotenv').config();
 
@@ -32,8 +32,18 @@ async function ingest() {
 
   // 1. Read PDF
   const dataBuffer = fs.readFileSync(FILE_PATH);
-  const data = await pdf(dataBuffer);
-  const fullText = data.text;
+  
+  let fullText = "";
+  try {
+    const parser = new PDFParse({ data: dataBuffer });
+    const result = await parser.getText();
+    fullText = result.text;
+    await parser.destroy();
+  } catch (pdfError) {
+    console.error("Error reading PDF:", pdfError.message);
+    return;
+  }
+  
   console.log(`Successfully read PDF. Total characters: ${fullText.length}`);
 
   // 2. Chunking (Simple split by paragraphs)
@@ -48,7 +58,7 @@ async function ingest() {
     try {
       // 3.1 Get embedding
       const embeddingResponse = await axios.post(
-        "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
+        "https://router.huggingface.co/hf-inference/models/BAAI/bge-small-en-v1.5",
         { inputs: chunk },
         { headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}` } }
       );

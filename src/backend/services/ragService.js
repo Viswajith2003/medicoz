@@ -1,111 +1,151 @@
-const axios = require("axios");
+// ragService.js
+// Uses local @xenova/transformers for embeddings (free, no API cost).
+// Uses Hugging Face router for LLM with graceful fallback.
 
-// NOTE: You will need to add these to your .env file
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
-const PINECONE_ENVIRONMENT = process.env.PINECONE_ENVIRONMENT;
-const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME;
+const PINECONE_HOST = process.env.PINECONE_HOST;
 const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+
+// Shared lazy-loaded local embedding pipeline (same model as ingestService)
+let embeddingPipeline = null;
+async function getLocalEmbedding(text) {
+  if (!embeddingPipeline) {
+    const { pipeline } = await import('@xenova/transformers');
+    embeddingPipeline = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5');
+  }
+  const output = await embeddingPipeline(text, { pooling: 'mean', normalize: true });
+  return Array.from(output.data);
+}
 
 /**
  * Retrieves relevant medical context from Pinecone vector database.
- * @param {string} query - The user's medical question.
- * @returns {Promise<string>} - A concatenated string of relevant context chunks.
  */
 async function getRelevantContext(query) {
   try {
-    // 1. Generate embedding for the query (using HuggingFace model)
-    const embeddingResponse = await axios.post(
-      "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
-      { inputs: query },
-      { headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}` } }
-    );
+    const queryEmbedding = await getLocalEmbedding(query);
 
-    const queryEmbedding = embeddingResponse.data;
-
-    // 2. Search Pinecone for similar chunks
-    // Note: This assumes you have already created a Pinecone index and uploaded embeddings.
-    const pineconeResponse = await axios.post(
-      `https://${PINECONE_INDEX_NAME}.svc.${PINECONE_ENVIRONMENT}.pinecone.io/query`,
+    const pineconeResponse = await fetch(
+      `https://${PINECONE_HOST}/query`,
       {
-        vector: queryEmbedding,
-        topK: 3,
-        includeMetadata: true,
-      },
-      { headers: { "Api-Key": PINECONE_API_KEY } }
+        method: "POST",
+        headers: {
+          "Api-Key": PINECONE_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          vector: queryEmbedding,
+          topK: 5,
+          includeMetadata: true,
+        })
+      }
     );
 
-    const context = pineconeResponse.data.matches
+    if (!pineconeResponse.ok) {
+      throw new Error(`Pinecone search error ${pineconeResponse.status}`);
+    }
+
+    const data = await pineconeResponse.json();
+    const context = data.matches
+      .filter(match => match.score > 0.3)
       .map((match) => match.metadata.text)
       .join("\n\n");
 
     return context || "No relevant medical records found.";
   } catch (error) {
-    console.error("Error retrieving context from Pinecone:", error.response?.data || error.message);
+    console.error("Error retrieving context:", error.message);
     return "";
   }
 }
 
 /**
- * Generates a medical response using Mistral 7B via Hugging Face.
- * @param {string} query - The user's question.
- * @param {string} context - The retrieved medical context.
- * @returns {Promise<string>} - The AI-generated medical response.
+ * Formats the raw Pinecone context into a clean, structured medical response.
+ * Used as fallback when the LLM is not available.
+ */
+function formatContextAsResponse(query, context) {
+  const lines = context
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l.length > 20); // Remove very short fragments
+
+  // Split into paragraphs of substance
+  const paragraphs = [];
+  let current = "";
+  for (const line of lines) {
+    if (line.length > 0) {
+      current += (current ? " " : "") + line;
+      if (current.length > 300) {
+        paragraphs.push(current.trim());
+        current = "";
+      }
+    }
+  }
+  if (current) paragraphs.push(current.trim());
+
+  const topParagraphs = paragraphs.slice(0, 4); // Show up to 4 relevant paragraphs
+
+  return [
+    `📚 **Based on your medical reference book:**`,
+    ``,
+    ...topParagraphs.map(p => `> ${p}`),
+    ``,
+    `---`,
+    `*Source: Physical Rehabilitation, 6th Edition (O'Sullivan). For clinical decisions, always consult a licensed healthcare professional.*`
+  ].join("\n");
+}
+
+/**
+ * Generates a medical response using Hugging Face LLM.
+ * Falls back to returning the retrieved context directly if LLM is unavailable.
  */
 async function generateMedicalResponse(query, context) {
+  if (!context || context === "No relevant medical records found.") {
+    return "❓ I couldn't find specific information about that topic in our verified medical sources. Please consult a healthcare professional for accurate advice.";
+  }
+
+  // Try LLM
   try {
-    if (!context || context === "No relevant medical records found.") {
-      return "Information not available in verified sources.";
-    }
+    const prompt = `<s>[INST] You are MediCoz, a specialized medical AI assistant.
+Answer the user's question concisely using ONLY the provided medical context.
+If the context does not contain the answer, say so clearly.
 
-    const prompt = `
-      You are a specialized medical AI assistant for MediCoz. 
-      Answer the user's question STRICTLY based on the provided context from verified medical sources.
-      If the information is not in the context, say: "Information not available in verified sources."
-      Do not hallucinate or use outside knowledge.
+MEDICAL CONTEXT:
+${context.substring(0, 2000)}
 
-      ---
-      CONTEXT:
-      ${context}
+QUESTION: ${query} [/INST]`;
 
-      ---
-      USER QUESTION:
-      ${query}
-
-      ---
-      RESPONSE:
-    `;
-
-    const response = await axios.post(
-      "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1",
+    const llmResponse = await fetch(
+      "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.3",
       {
-        inputs: prompt,
-        parameters: { max_new_tokens: 500, temperature: 0.1, top_p: 0.9 },
-      },
-      { headers: { Authorization: `Bearer ${HUGGINGFACE_API_KEY}` } }
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${HUGGINGFACE_API_KEY}`
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: { max_new_tokens: 400, temperature: 0.1, top_p: 0.9, return_full_text: false },
+        })
+      }
     );
 
-    // Clean up the response (Mistral instructions model might return the prompt back)
-    let aiResponse = response.data[0].generated_text;
-    if (aiResponse.includes("RESPONSE:")) {
-      aiResponse = aiResponse.split("RESPONSE:").pop().trim();
+    if (llmResponse.ok) {
+      const data = await llmResponse.json();
+      const text = Array.isArray(data) ? data[0]?.generated_text : data?.generated_text;
+      if (text && text.trim().length > 10) {
+        console.log("[RAG] LLM response used successfully.");
+        return text.trim();
+      }
+    } else {
+      const errBody = await llmResponse.text();
+      console.warn(`[RAG] LLM returned HTTP ${llmResponse.status}. Falling back to context.`);
     }
-
-    return aiResponse;
-  } catch (error) {
-    console.error("Error generating response from LLM:", error.response?.data || error.message);
-    return "I'm sorry, I'm having trouble connecting to my medical database right now.";
+  } catch (llmError) {
+    console.warn("[RAG] LLM call failed. Falling back to context:", llmError.message);
   }
+
+  // Graceful fallback: return the Pinecone context formatted as a structured response
+  console.log("[RAG] Using formatted context fallback.");
+  return formatContextAsResponse(query, context);
 }
 
 module.exports = { getRelevantContext, generateMedicalResponse };
-
-
-
-
-
-// ragService.js
-
-// This is the "brain" of your backend.
-// It handles converting user questions into embeddings (via Hugging Face).
-// It searches your Pinecone database for relevant medical chapters.
-// It sends that context to the Mistral 7B model to generate a verified response
