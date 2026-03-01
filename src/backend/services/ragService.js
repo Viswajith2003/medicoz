@@ -4,7 +4,8 @@
 
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_HOST = process.env.PINECONE_HOST;
-const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY;
+const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY; // kept for reference
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Shared lazy-loaded local embedding pipeline (same model as ingestService)
 let embeddingPipeline = null;
@@ -81,66 +82,78 @@ function formatContextAsResponse(query, context) {
   }
   if (current) paragraphs.push(current.trim());
 
-  const topParagraphs = paragraphs.slice(0, 4); // Show up to 4 relevant paragraphs
+  const topParagraphs = paragraphs.slice(0, 5); // Show up to 5 relevant points
 
-  return [
-    `📚 **Based on your medical reference book:**`,
-    ``,
-    ...topParagraphs.map(p => `> ${p}`),
-    ``,
-    `---`,
-    `*Source: Physical Rehabilitation, 6th Edition (O'Sullivan). For clinical decisions, always consult a licensed healthcare professional.*`
-  ].join("\n");
+  const bulletPoints = topParagraphs.map(p => `👉 ${p}`).join("\n\n");
+
+  return `Here is what your medical reference book says about this:\n\n${bulletPoints}\n\n⚕️ Always consult a licensed healthcare professional for clinical decisions.`;
 }
 
 /**
- * Generates a medical response using Hugging Face LLM.
- * Falls back to returning the retrieved context directly if LLM is unavailable.
+ * Generates a medical response using Google Gemini (free tier: 1500 req/day).
+ * Falls back to returning the retrieved context if Gemini is unavailable.
  */
 async function generateMedicalResponse(query, context) {
   if (!context || context === "No relevant medical records found.") {
     return "❓ I couldn't find specific information about that topic in our verified medical sources. Please consult a healthcare professional for accurate advice.";
   }
 
-  // Try LLM
+  // Try Google Gemini
   try {
-    const prompt = `<s>[INST] You are MediCoz, a specialized medical AI assistant.
-Answer the user's question concisely using ONLY the provided medical context.
-If the context does not contain the answer, say so clearly.
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+      console.warn("[RAG] Gemini API key not set. Using context fallback.");
+      return formatContextAsResponse(query, context);
+    }
 
-MEDICAL CONTEXT:
-${context.substring(0, 2000)}
-
-QUESTION: ${query} [/INST]`;
-
-    const llmResponse = await fetch(
-      "https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.3",
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${HUGGINGFACE_API_KEY}`
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          inputs: prompt,
-          parameters: { max_new_tokens: 400, temperature: 0.1, top_p: 0.9, return_full_text: false },
+          contents: [{
+            parts: [{
+              text: `You are MediCoz, a specialized medical AI assistant.
+Answer the user's question using ONLY the provided medical context.
+If the context does not contain the answer, say: "This information is not available in our current medical database."
+Do not use outside knowledge. Do not hallucinate.
+
+STRICT FORMATTING RULES:
+- Start with a short one-line summary of the answer.
+- Then list each key point using the 👉 emoji at the start.
+- Add a blank line between each 👉 point.
+- End with a short note like: "⚕️ Always consult a licensed healthcare professional for clinical decisions."
+- Do NOT use markdown like **, ##, or *.
+
+MEDICAL CONTEXT:
+${context.substring(0, 3000)}
+
+USER QUESTION: ${query}
+
+ANSWER:`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 500,
+          }
         })
       }
     );
 
-    if (llmResponse.ok) {
-      const data = await llmResponse.json();
-      const text = Array.isArray(data) ? data[0]?.generated_text : data?.generated_text;
+    if (geminiRes.ok) {
+      const data = await geminiRes.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (text && text.trim().length > 10) {
-        console.log("[RAG] LLM response used successfully.");
+        console.log("[RAG] Gemini response used successfully.");
         return text.trim();
       }
     } else {
-      const errBody = await llmResponse.text();
-      console.warn(`[RAG] LLM returned HTTP ${llmResponse.status}. Falling back to context.`);
+      const errBody = await geminiRes.text();
+      console.warn(`[RAG] Gemini returned HTTP ${geminiRes.status}: ${errBody.substring(0, 100)}`);
     }
-  } catch (llmError) {
-    console.warn("[RAG] LLM call failed. Falling back to context:", llmError.message);
+  } catch (geminiError) {
+    console.warn("[RAG] Gemini call failed:", geminiError.message);
   }
 
   // Graceful fallback: return the Pinecone context formatted as a structured response
@@ -149,3 +162,26 @@ QUESTION: ${query} [/INST]`;
 }
 
 module.exports = { getRelevantContext, generateMedicalResponse };
+
+
+
+
+// The "brain" of the chatbot. Called every time a user sends a chat message.
+
+// User Question: "What is spasticity?"
+//    │
+//    ▼
+// getLocalEmbedding(question)
+//    → [0.12, -0.45, 0.87, ...] (384 numbers)
+//    │
+//    ▼
+// Pinecone query → find 5 most similar vectors
+//    → Returns real text chunks from your medical book
+//    │
+//    ▼
+// generateMedicalResponse(question, context)
+//    ├─ Try: HF Mistral-7B LLM (currently 404 — credits depleted)
+//    └─ Fallback: Format and return the Pinecone context directly
+//    │
+//    ▼
+// Structured response returned to chat UI

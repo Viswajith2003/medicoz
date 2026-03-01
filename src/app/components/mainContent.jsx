@@ -546,8 +546,16 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
                               ))}
                             </div>
                           ) : (
-                            <div className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                              {message.text}
+                            <div className="text-sm sm:text-base leading-relaxed space-y-1">
+                              {message.text.split("\n").map((line, idx) =>
+                                line.trim() === "" ? (
+                                  <div key={idx} className="h-2" />
+                                ) : (
+                                  <p key={idx} className={line.startsWith("👉") ? "pl-1" : line.startsWith("⚕️") ? "text-xs text-emerald-400 mt-2 italic" : ""}>
+                                    {line}
+                                  </p>
+                                )
+                              )}
                             </div>
                           )}
                         </div>

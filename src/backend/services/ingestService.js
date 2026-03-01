@@ -148,6 +148,27 @@ async function processAndIngest(buffer, originalName) {
   }
 
   console.log(`--- Admin Ingestion Complete for: ${originalName} ---`);
+  return chunks.length; // Return chunk count for record-keeping
 }
 
 module.exports = { processAndIngest };
+
+
+// The PDF-to-Pinecone pipeline. Called when you upload a PDF.
+
+// PDF File
+//    │
+//    ▼
+// pdf-parse → Extract raw text (6.5M chars)
+//    │
+//    ▼
+// Split into ~4000 chunks (max 2000 chars each)
+//    │
+//    ▼
+// For each batch of 100 chunks:
+//    ├─ getLocalEmbedding() × 100 chunks (local AI model)
+//    │  → converts text to 384-dimensional vector
+//    └─ Pinecone bulk upsert (1 network call for 100 vectors)
+//    │
+//    ▼
+// Done — medical knowledge is now searchable
