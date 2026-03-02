@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --no-audit"
+buildCommand = "npm ci --no-audit"
 
 [deploy]
 startCommand = "node src/backend/routes/server.js"
