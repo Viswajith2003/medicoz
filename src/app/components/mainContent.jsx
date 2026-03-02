@@ -107,7 +107,7 @@ const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
 
   const features = [
     { text: "Ask Medical Questions: Get instant, reliable answers.", icon: <Sparkles className="w-5 h-5 text-blue-400" /> },
-    { text: "Manage Appointments & Medication: Stay on track effortlessly.", icon: <Sparkles className="w-5 h-5 text-green-400" /> },
+    { text: "AI Health Monitoring: Track symptoms and health trends in real-time.", icon: <Sparkles className="w-5 h-5 text-green-400" /> },
     { text: "Personalized Health Advice: Tailored to your needs.", icon: <Sparkles className="w-5 h-5 text-purple-400" /> },
   ];
 
