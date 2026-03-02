@@ -23,7 +23,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch("http://localhost:7000/profile", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000"}/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -3,7 +3,7 @@ import { Send, Paperclip, Edit2, Bot, User, Sparkles } from "lucide-react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE_URL = "http://localhost:7000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
 
 const MainContent = ({ theme, showWelcome, setShowWelcome }) => {
   const [messages, setMessages] = useState([]);

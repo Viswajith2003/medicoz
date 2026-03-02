@@ -12,7 +12,7 @@ const AuthPage = ({ onSignIn }) => {
     e.preventDefault();
     // console.log("Login request sent with:", { email, password });
     try {
-      const response = await fetch("http://localhost:7000/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000"}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -37,7 +37,7 @@ const AuthPage = ({ onSignIn }) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     const response = await fetch(
-      "http://localhost:7000/register",
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000"}/register`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -10,7 +10,7 @@ import { TbLayoutSidebarLeftCollapseFilled } from "react-icons/tb";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_BASE_URL = "http://localhost:7000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
 
 export default function ChatHistory({ theme, setShowWelcome }) {
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
