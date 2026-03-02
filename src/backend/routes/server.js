@@ -35,14 +35,6 @@ app.use('/', require('./auth'));
 app.use('/chat', require('./chat'));
 app.use('/admin', require('./admin'));
 
-// Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../../app/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../app/build', 'index.html'));
-  });
-}
 
 
 // require("dotenv").config();
