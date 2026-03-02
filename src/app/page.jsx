@@ -81,7 +81,7 @@ export default function Home() {
   }
 
   return isAuthenticated ? (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}

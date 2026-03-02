@@ -16,8 +16,9 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevent the entire page from scrolling */
-  @apply bg-[#131619] text-white;
+  /* overflow is intentionally NOT hidden here so the auth page can scroll on small screens.
+     The main app shell uses h-screen + overflow-hidden via Tailwind on the flex container. */
+  @apply bg-[#0d0e11] text-white;
 }
 
 /* Base body styles */
