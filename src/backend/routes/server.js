@@ -17,7 +17,14 @@ console.log(`-----------------------------`);
 // Middleware
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://medicoz-iota.vercel.app",
+    "http://localhost:3000",
+  ],
+  credentials: true,
+}));
+
 
 // Start HTTP server immediately (Railway needs the port bound quickly)
 const PORT = process.env.PORT || 7000;
