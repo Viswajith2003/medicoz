@@ -19,16 +19,16 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(cors());
 
-// Connect to MongoDB
+// Start HTTP server immediately (Railway needs the port bound quickly)
+const PORT = process.env.PORT || 7000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Connect to MongoDB asynchronously
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => {
-    const PORT = process.env.PORT || 7000;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-    console.log("Connected to MongoDB");
-  })
+  .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
 
 // Routes
 app.use('/', require('./auth'));
