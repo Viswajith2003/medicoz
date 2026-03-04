@@ -46,15 +46,20 @@ async function getRelevantContext(query) {
     }
 
     const data = await pineconeResponse.json();
-    const context = data.matches
-      .filter(match => match.score > 0.3)
+    const relevantMatches = data.matches.filter(match => match.score > 0.3);
+    const context = relevantMatches
       .map((match) => match.metadata.text)
       .join("\n\n");
 
-    return context || "No relevant medical records found.";
+    console.log(`[RAG] Pinecone returned ${data.matches.length} matches, ${relevantMatches.length} above threshold.`);
+
+    return {
+      context: context || "",
+      hasRelevantContent: relevantMatches.length > 0,
+    };
   } catch (error) {
     console.error("Error retrieving context:", error.message);
-    return "";
+    return { context: "", hasRelevantContent: false };
   }
 }
 
@@ -93,9 +98,21 @@ function formatContextAsResponse(query, context) {
  * Generates a medical response using Google Gemini (free tier: 1500 req/day).
  * Falls back to returning the retrieved context if Gemini is unavailable.
  */
-async function generateMedicalResponse(query, context) {
-  if (!context || context === "No relevant medical records found.") {
-    return "❓ I couldn't find specific information about that topic in our verified medical sources. Please consult a healthcare professional for accurate advice.";
+async function generateMedicalResponse(query, ragResult) {
+  // ragResult can be an object { context, hasRelevantContent } or a plain string (legacy)
+  const context = typeof ragResult === "object" ? ragResult.context : ragResult;
+  const hasRelevantContent = typeof ragResult === "object" ? ragResult.hasRelevantContent : !!(ragResult && ragResult !== "No relevant medical records found.");
+
+  // ── OUT-OF-SCOPE GUARD ──────────────────────────────────────────────────────
+  // If no relevant content was found in the vector DB, return a friendly message
+  // immediately — do NOT call the LLM to avoid hallucination.
+  if (!hasRelevantContent || !context) {
+    console.log("[RAG] No relevant content found — returning out-of-scope message.");
+    return (
+      "😔 Sorry, this topic is not covered in our available medical documents.\n\n" +
+      "👉 I can only provide answers based on the specific clinical reference materials available in my knowledge base.\n\n" +
+      "⚕️ For accurate advice on this subject, please consult a licensed healthcare professional."
+    );
   }
 
   // Try Google Gemini
@@ -114,15 +131,16 @@ async function generateMedicalResponse(query, context) {
           contents: [{
             parts: [{
               text: `You are MediCoz, a specialized medical AI assistant.
-Answer the user's question using ONLY the provided medical context.
-If the context does not contain the answer, say: "This information is not available in our current medical database."
-Do not use outside knowledge. Do not hallucinate.
+Answer the user's question using ONLY the provided medical context below.
+If the provided context does NOT contain enough information to answer the question, respond EXACTLY with this message and nothing else:
+"😔 Sorry, this topic is not covered in our available medical documents. For accurate advice, please consult a licensed healthcare professional."
+Do NOT use outside knowledge. Do NOT hallucinate.
 
-STRICT FORMATTING RULES:
+STRICT FORMATTING RULES (only when you have a real answer):
 - Start with a short one-line summary of the answer.
 - Then list each key point using the 👉 emoji at the start.
 - Add a blank line between each 👉 point.
-- End with a short note like: "⚕️ Always consult a licensed healthcare professional for clinical decisions."
+- End with: "⚕️ Always consult a licensed healthcare professional for clinical decisions."
 - Do NOT use markdown like **, ##, or *.
 
 MEDICAL CONTEXT:

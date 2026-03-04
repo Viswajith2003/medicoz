@@ -58,7 +58,7 @@ router.post("/:sessionId", verifyToken, async (req, res) => {
     try {
       console.log("[CHAT] Running RAG pipeline...");
       const context = await getRelevantContext(content);
-      console.log(`[CHAT] Context retrieved: ${context?.length} chars`);
+      console.log(`[CHAT] Context retrieved: hasRelevantContent=${context?.hasRelevantContent}, chars=${context?.context?.length}`);
       aiResponse = await generateMedicalResponse(content, context);
       console.log(`[CHAT] AI response generated: ${aiResponse?.substring(0, 80)}...`);
     } catch (ragError) {
