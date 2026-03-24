@@ -4,6 +4,7 @@ import Sidebar from "./components/sidebar";
 import MainContent from "./components/mainContent";
 import ChatHistory from "./components/chatHistory";
 import AuthPage from "./components/AuthForm";
+import ConsultDoctor from "./components/consultDoctor";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -14,6 +15,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showChat, setShowChat] = useState(true);
+  const [activeView, setActiveView] = useState("chat"); // "chat" | "consult"
 
   const fetchUserProfile = async (token) => {
     if (!token) {
@@ -53,6 +55,11 @@ export default function Home() {
     const token = localStorage.getItem("token");
     setIsAuthenticated(token !== null);
     fetchUserProfile(token); // Run on mount
+
+    // Listen for view switch events from sidebar
+    const handleSetView = (e) => setActiveView(e.detail.view);
+    document.addEventListener("setView", handleSetView);
+    return () => document.removeEventListener("setView", handleSetView);
   }, []); // Runs only once on mount
 
   useEffect(() => {
@@ -95,18 +102,24 @@ export default function Home() {
           theme === "light" ? "bg-gray-50" : "bg-[#131619]"
         }`}
       >
-        {showChat && (
-          <MainContent
-            theme={theme}
-            showWelcome={showWelcome}
-            setShowWelcome={setShowWelcome}
-          />
+        {activeView === "consult" ? (
+          <ConsultDoctor theme={theme} user={user} />
+        ) : (
+          <>
+            {showChat && (
+              <MainContent
+                theme={theme}
+                showWelcome={showWelcome}
+                setShowWelcome={setShowWelcome}
+              />
+            )}
+            <ChatHistory
+              theme={theme}
+              openChat={openChat}
+              setShowWelcome={setShowWelcome}
+            />
+          </>
         )}
-        <ChatHistory
-          theme={theme}
-          openChat={openChat}
-          setShowWelcome={setShowWelcome}
-        />
       </div>
     </div>
   ) : (

@@ -19,7 +19,7 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(cors({
   origin: [
-    "https://medicoz-iota.vercel.app",
+    // "https://medicoz-iota.vercel.app",  // ← uncomment when deploying to production
     "http://localhost:3000",
   ],
   credentials: true,
@@ -41,6 +41,7 @@ mongoose
 app.use('/', require('./auth'));
 app.use('/chat', require('./chat'));
 app.use('/admin', require('./admin'));
+app.use('/appointments', require('./appointments'));
 
 
 

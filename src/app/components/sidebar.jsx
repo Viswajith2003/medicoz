@@ -12,7 +12,8 @@ import {
   X,
   ChevronDown,
   Sparkles,
-  LayoutDashboard
+  LayoutDashboard,
+  Stethoscope,
 } from "lucide-react";
 import { IoSquareOutline } from "react-icons/io5";
 import { FiTriangle } from "react-icons/fi";
@@ -41,6 +42,15 @@ export default function Sidebar({
       onClick: () => {
         setActiveMenuItem("Dashboard");
         document.dispatchEvent(new CustomEvent("refreshMainContent"));
+        document.dispatchEvent(new CustomEvent("setView", { detail: { view: "chat" } }));
+      }
+    },
+    {
+      icon: <Stethoscope className="w-5 h-5" />,
+      text: "Consult a Doctor",
+      onClick: () => {
+        setActiveMenuItem("Consult a Doctor");
+        document.dispatchEvent(new CustomEvent("setView", { detail: { view: "consult" } }));
       }
     },
     {
