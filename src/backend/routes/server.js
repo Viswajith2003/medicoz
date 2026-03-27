@@ -1,12 +1,25 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../../../.env") });
 const express = require("express");
+const http = require("http");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const config = require('./config');
+const Message = require("../models/messageModel");
 
-// Initialize Express app
+// Initialize Express app + HTTP server
 const app = express();
+const server = http.createServer(app);
+
+// Socket.io setup
+const { Server } = require("socket.io");
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:3000"],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
 console.log(`--- Medicoz Backend Start ---`);
 console.log(`Node Version: ${process.version}`);
@@ -19,23 +32,98 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(cors({
   origin: [
-    // "https://medicoz-iota.vercel.app",  // ← uncomment when deploying to production
-    "http://localhost:3000",
+    "https://medicoz-iota.vercel.app",  // Vercel frontend (production)
+    "http://localhost:3000",             // local dev
   ],
   credentials: true,
 }));
 
+// ── Socket.io real-time chat ──────────────────────────────────────────────────
+io.on("connection", (socket) => {
+  console.log(`🔌 Socket connected: ${socket.id}`);
 
-// Start HTTP server immediately (Railway needs the port bound quickly)
+  // Patient or doctor joins their chat room
+  socket.on("join_room", ({ roomId, name, role }) => {
+    socket.join(roomId);
+    console.log(`💬 ${role} "${name}" joined room: ${roomId}`);
+  });
+
+  // Someone sends a message
+  socket.on("send_message", async (data) => {
+    const { roomId, senderId, senderType, senderName, doctorId, userId, text } = data;
+    try {
+      const msg = new Message({ roomId, senderId, senderType, senderName, doctorId, userId, text });
+      await msg.save();
+      // Broadcast to everyone in the room (including sender)
+      io.to(roomId).emit("receive_message", {
+        _id: msg._id,
+        senderId,
+        senderType,
+        senderName,
+        text,
+        timestamp: msg.timestamp,
+      });
+    } catch (err) {
+      console.error("Socket message save error:", err.message);
+    }
+  });
+
+  // Typing indicator
+  socket.on("typing", ({ roomId, senderName, senderType }) => {
+    socket.to(roomId).emit("user_typing", { senderName, senderType });
+  });
+
+  socket.on("stop_typing", ({ roomId }) => {
+    socket.to(roomId).emit("user_stop_typing");
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`🔌 Socket disconnected: ${socket.id}`);
+  });
+});
+
+// ── REST: Fetch message history for a room ────────────────────────────────────
+app.get("/messages/:roomId", async (req, res) => {
+  try {
+    const messages = await Message.find({ roomId: req.params.roomId })
+      .sort({ timestamp: 1 })
+      .limit(100);
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: "Could not fetch messages" });
+  }
+});
+
+// ── REST: List all patient rooms for a doctor ─────────────────────────────────
+app.get("/messages/rooms/:doctorId", async (req, res) => {
+  try {
+    const rooms = await Message.aggregate([
+      { $match: { doctorId: req.params.doctorId } },
+      { $sort: { timestamp: -1 } },
+      { $group: {
+        _id: "$roomId",
+        roomId: { $first: "$roomId" },
+        patientName: { $first: { $cond: [{ $eq: ["$senderType", "patient"] }, "$senderName", null] } },
+        lastMessage: { $first: "$text" },
+        lastTime: { $first: "$timestamp" },
+      }},
+      { $sort: { lastTime: -1 } },
+    ]);
+    res.json(rooms);
+  } catch (err) {
+    res.status(500).json({ error: "Could not fetch rooms" });
+  }
+});
+
+// Start HTTP server (with Socket.io attached)
 const PORT = process.env.PORT || 7000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));
 
 // Connect to MongoDB asynchronously
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
-
 
 // Routes
 app.use('/', require('./auth'));

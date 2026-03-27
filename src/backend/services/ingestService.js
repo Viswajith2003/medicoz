@@ -67,10 +67,9 @@ async function processAndIngest(buffer, originalName) {
   // 1. Read PDF
   let fullText = '';
   try {
-    const parser = new PDFParse({ data: buffer });
-    const result = await parser.getText();
+    const pdfParse = require('pdf-parse');
+    const result = await pdfParse(buffer);
     fullText = result.text;
-    await parser.destroy();
   } catch (pdfError) {
     throw new Error('Failed to parse PDF: ' + pdfError.message);
   }
