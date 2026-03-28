@@ -7,11 +7,8 @@ import { Send, Stethoscope, MessageCircle } from "lucide-react";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
 
 const DOCTORS = {
-  "dr-001": { name: "Ananya Sharma", specialty: "General Physician", avatar: "AS", color: "from-violet-500 to-purple-600" },
-  "dr-002": { name: "Vipinjith", specialty: "Cardiologist", avatar: "VP", color: "from-rose-500 to-red-600" },
-  "dr-003": { name: "Priya Nair", specialty: "Dermatologist", avatar: "PN", color: "from-emerald-500 to-teal-600" },
-  "dr-005": { name: "Divya Patel", specialty: "Neurologist", avatar: "DP", color: "from-amber-500 to-orange-600" },
-  "dr-006": { name: "Sajith", specialty: "General Physician", avatar: "SJ", color: "from-cyan-500 to-blue-600" },
+  "dr-001": { name: "Arya", specialty: "General Physician", avatar: "AS", color: "from-violet-500 to-purple-600" },
+  "dr-002": { name: "Viswajith", specialty: "Cardiologist", avatar: "SJ", color: "from-cyan-500 to-blue-600" },
 };
 
 export default function DoctorPortal({ params }) {

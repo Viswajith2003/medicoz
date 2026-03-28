@@ -13,10 +13,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
 // ─── Dummy Doctors ─────────────────────────────────────────────────────────────
 const DUMMY_DOCTORS = [
   { id: "dr-001", name: "Arya", specialty: "General Physician", experience: "12 yrs", rating: 4.9, available: true, whatsapp: "+919605644954", slots: ["09:00 AM", "10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"], avatar: "AS", color: "from-violet-500 to-purple-600", about: "MBBS, MD – Expert in fever, infections & general health." },
-  // { id: "dr-002", name: "Vipinjith", specialty: "Cardiologist", experience: "18 yrs", rating: 4.8, available: true, whatsapp: "+918848446784", slots: ["10:30 AM", "12:00 PM", "03:00 PM", "05:00 PM"], avatar: "VP", color: "from-rose-500 to-red-600", about: "DM Cardiology – Heart health, ECG analysis & BP management." },
-  // { id: "dr-003", name: "Priya Nair", specialty: "Dermatologist", experience: "9 yrs", rating: 4.7, available: true, whatsapp: "+919999000003", slots: ["09:30 AM", "11:30 AM", "01:00 PM", "03:30 PM"], avatar: "PN", color: "from-emerald-500 to-teal-600", about: "MD Dermatology – Skin issues, acne, eczema & cosmetics." },
-  // { id: "dr-004", name: "Suresh Kumar", specialty: "Orthopedic", experience: "15 yrs", rating: 4.6, available: false, whatsapp: "+919999000004", slots: ["10:00 AM", "02:00 PM", "04:30 PM"], avatar: "SK", color: "from-blue-500 to-indigo-600", about: "MS Ortho – Bone, joint & sports injury specialist." },
-  // { id: "dr-005", name: "Divya Patel", specialty: "Neurologist", experience: "11 yrs", rating: 4.9, available: true, whatsapp: "+919999000005", slots: ["09:00 AM", "11:00 AM", "01:30 PM", "04:00 PM"], avatar: "DP", color: "from-amber-500 to-orange-600", about: "DM Neurology – Headaches, migraines & nerve disorders." },
   { id: "dr-002", name: "Viswajith", specialty: "Cardiologist", experience: "8 yrs", rating: 4.8, available: true, whatsapp: "+919072906576", slots: ["09:00 AM", "10:30 AM", "12:00 PM", "02:00 PM", "05:00 PM"], avatar: "SJ", color: "from-cyan-500 to-blue-600", about: "MBBS – General health consultations & preventive care." },
 ];
 
