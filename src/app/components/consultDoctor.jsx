@@ -328,7 +328,7 @@ export default function ConsultDoctor({ theme, user }) {
                       <p className={`text-sm ${text} flex items-center gap-1`}><span className={subtext}>WhatsApp:</span> <Phone className="w-3 h-3 text-emerald-400" /> {bookedAppointment.doctorWhatsapp}</p>
                     )}
                     <p className={`text-sm break-all ${text}`}><span className={subtext}>Room:</span>{" "}
-                      <a href={`https://meet.jit.si/${bookedAppointment.roomId}#config.prejoinPageEnabled=false&config.lobby.enabled=false`} target="_blank" rel="noreferrer" className="text-blue-400 underline hover:text-blue-300">Join Video Call <ExternalLink className="w-3 h-3 inline" /></a>
+                      <a href={`https://meet.jit.si/${bookedAppointment.roomId}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.lobby.enabled=false`} target="_blank" rel="noreferrer" className="text-blue-400 underline hover:text-blue-300">Join Video Call <ExternalLink className="w-3 h-3 inline" /></a>
                     </p>
                   </div>
                   <div className="flex gap-3">
@@ -458,7 +458,7 @@ export default function ConsultDoctor({ theme, user }) {
                   <div className="flex items-center justify-between">
                     <div><h2 className={`text-base font-bold ${text}`}>Video Call in Progress</h2><p className={`text-xs ${subtext}`}>Room: {activeRoom}</p></div>
                     <div className="flex items-center gap-2">
-                       <a href={`https://meet.jit.si/${activeRoom}#config.prejoinPageEnabled=false&config.lobby.enabled=false`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-xs font-semibold transition-colors">
+                       <a href={`https://meet.jit.si/${activeRoom}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.lobby.enabled=false`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 text-xs font-semibold transition-colors">
                           <ExternalLink className="w-3.5 h-3.5" /> Full Screen
                        </a>
                        <button onClick={() => setActiveRoom(null)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-colors"><X className="w-3.5 h-3.5" /> End Call</button>
@@ -466,7 +466,7 @@ export default function ConsultDoctor({ theme, user }) {
                   </div>
                   <div className="rounded-2xl overflow-hidden border border-gray-800 shadow-2xl" style={{ height: "60vh" }}>
                     <iframe
-                      src={`https://meet.jit.si/${activeRoom}#userInfo.displayName="${user ? user.firstName : "Patient"}"&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.prejoinPageEnabled=false&config.lobby.enabled=false`}
+                      src={`https://meet.jit.si/${activeRoom}#userInfo.displayName="${user ? user.firstName : "Patient"}"&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.lobby.enabled=false`}
                       allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
                       style={{ width: "100%", height: "100%", border: "none" }}
                       title="Medicoz Video Consultation"
