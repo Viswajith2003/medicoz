@@ -40,7 +40,7 @@ router.post("/book", verifyToken, async (req, res) => {
   try {
     // Generate a unique Jitsi room ID
     const roomId = `medicoz-${doctorId}-${Date.now()}`;
-    const roomUrl = `https://meet.ffmuc.net/${roomId}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.lobby.enabled=false`;
+    const roomUrl = `https://meet.jit.si/${roomId}#config.prejoinPageEnabled=false&config.prejoinConfig.enabled=false&config.lobby.enabled=false&config.p2p.enabled=true`;
 
     const appointment = new Appointment({
       userId: req.user.userId,
