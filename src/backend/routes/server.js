@@ -1,4 +1,7 @@
 const path = require("path");
+// Try loading from current directory (standard for many environments)
+require("dotenv").config();
+// Fallback to searching three levels up (local development structure)
 require("dotenv").config({ path: path.join(__dirname, "../../../.env") });
 const express = require("express");
 const http = require("http");
@@ -24,8 +27,10 @@ const io = new Server(server, {
 
 console.log(`--- Medicoz Backend Start ---`);
 console.log(`Node Version: ${process.version}`);
-console.log(`HF Key Found: ${process.env.HUGGINGFACE_API_KEY ? 'YES (' + process.env.HUGGINGFACE_API_KEY.substring(0, 5) + '...)' : 'NO'}`);
-console.log(`PINECONE Key Found: ${process.env.PINECONE_API_KEY ? 'YES (' + process.env.PINECONE_API_KEY.substring(0, 10) + '...)' : 'NO'}`);
+console.log(`MONGO_URI Found: ${process.env.MONGO_URI ? 'YES' : 'NO'}`);
+console.log(`JWT_SECRET Found: ${process.env.JWT_SECRET ? 'YES' : 'NO'}`);
+console.log(`HF Key Found: ${process.env.HUGGINGFACE_API_KEY ? 'YES' : 'NO'}`);
+console.log(`PINECONE Key Found: ${process.env.PINECONE_API_KEY ? 'YES' : 'NO'}`);
 console.log(`-----------------------------`);
 
 // Middleware
@@ -123,7 +128,7 @@ server.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));
 // Connect to MongoDB asynchronously
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
+  .then(() => console.log("✅ Successfully connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Routes
