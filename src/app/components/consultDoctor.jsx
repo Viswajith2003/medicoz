@@ -255,6 +255,9 @@ export default function ConsultDoctor({ theme, user }) {
                             <div className="flex-1 min-w-0">
                               <p className={`font-semibold text-sm ${text}`}>Dr. {appt.doctorName}</p>
                               <p className={`text-xs ${subtext}`}>{appt.doctorSpecialty} • {appt.date} • {appt.timeSlot}</p>
+                              {appt.doctorWhatsapp && (
+                                <p className={`text-xs ${subtext} mt-1 flex items-center gap-1`}><Phone className="w-3 h-3 text-emerald-400" /> {appt.doctorWhatsapp}</p>
+                              )}
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => joinVideoCall(appt)} className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"><Video className="w-3 h-3" /> Join</button>
@@ -325,6 +328,9 @@ export default function ConsultDoctor({ theme, user }) {
                   <div className={`border rounded-2xl p-5 text-left mb-6 space-y-3 ${card}`}>
                     <p className={`text-sm ${text}`}><span className={subtext}>Date:</span> {bookedAppointment.date}</p>
                     <p className={`text-sm ${text}`}><span className={subtext}>Time:</span> {bookedAppointment.timeSlot}</p>
+                    {bookedAppointment.doctorWhatsapp && (
+                      <p className={`text-sm ${text} flex items-center gap-1`}><span className={subtext}>WhatsApp:</span> <Phone className="w-3 h-3 text-emerald-400" /> {bookedAppointment.doctorWhatsapp}</p>
+                    )}
                     <p className={`text-sm break-all ${text}`}><span className={subtext}>Room:</span>{" "}
                       <a href={`https://meet.jit.si/${bookedAppointment.roomId}`} target="_blank" rel="noreferrer" className="text-blue-400 underline hover:text-blue-300">Join Video Call <ExternalLink className="w-3 h-3 inline" /></a>
                     </p>
