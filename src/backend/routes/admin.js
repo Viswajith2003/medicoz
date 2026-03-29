@@ -12,6 +12,9 @@ const upload = multer({
   limits: { fileSize: 100 * 1024 * 1024 } // 100MB
 });
 
+// Mount Doctor Management routes
+router.use("/doctors", require("./doctors"));
+
 // Admin Login Route
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
