@@ -35,6 +35,8 @@ console.log(`--- Medicoz Backend Start ---`);
 console.log(`Node Version: ${process.version}`);
 console.log(`MONGO_URI Found: ${process.env.MONGO_URI ? 'YES' : 'NO'}`);
 console.log(`JWT_SECRET Found: ${process.env.JWT_SECRET ? 'YES' : 'NO'}`);
+console.log(`TWILIO_ACCOUNT_SID Found: ${process.env.TWILIO_ACCOUNT_SID ? 'YES' : 'NO'}`);
+console.log(`TWILIO_AUTH_TOKEN Found: ${process.env.TWILIO_AUTH_TOKEN ? 'YES' : 'NO'}`);
 console.log(`HF Key Found: ${process.env.HUGGINGFACE_API_KEY ? 'YES' : 'NO'}`);
 console.log(`PINECONE Key Found: ${process.env.PINECONE_API_KEY ? 'YES' : 'NO'}`);
 console.log(`-----------------------------`);

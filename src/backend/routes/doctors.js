@@ -75,4 +75,35 @@ router.delete("/:id", verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+const { sendDoctorWhatsAppNotification } = require("../services/whatsappService");
+
+// TEST WhatsApp notification (Admin)
+router.post("/:id/test-whatsapp", verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+
+    const result = await sendDoctorWhatsAppNotification({
+      doctorName: doctor.name,
+      doctorWhatsapp: doctor.whatsapp,
+      patientName: "TEST PATIENT",
+      date: "2026-03-30",
+      timeSlot: "10:00 AM",
+      roomUrl: "https://meet.jit.si/medicoz-test-room",
+    });
+
+    if (result.success) {
+      res.json({ message: "Test message sent successfully!", sid: result.sid });
+    } else {
+      res.status(500).json({ 
+        message: "Failed to send test message", 
+        reason: result.reason,
+        advice: result.advice 
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+});
+
 module.exports = router;

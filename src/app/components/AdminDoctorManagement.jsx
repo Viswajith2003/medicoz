@@ -102,6 +102,23 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
     }
   };
 
+  const handleTestWhatsapp = async (id, name) => {
+    const token = getToken();
+    try {
+      setLoading(true);
+      const res = await axios.post(`${apiBaseUrl}/admin/doctors/${id}/test-whatsapp`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert(`Success! ${res.data.message}\nSID: ${res.data.sid}`);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message;
+      const advice = err.response?.data?.advice || "";
+      alert(`Failed to send test: ${errorMsg}\n\n💡 ADVICE: ${advice}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center bg-[#1b1c21] p-6 rounded-2xl border border-gray-800">
@@ -133,13 +150,22 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleOpenModal(doc)}
-                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-blue-400 transition-colors"
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-blue-400 Transition-colors"
+                    title="Edit Doctor"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
+                    onClick={() => handleTestWhatsapp(doc._id, doc.name)}
+                    className="p-2 bg-gray-800 hover:bg-[#80d758]/20 rounded-lg text-[#80d758] transition-colors"
+                    title="Send Test WhatsApp"
+                  >
+                    <MessageCircle size={16} />
+                  </button>
+                  <button
                     onClick={() => handleDelete(doc._id, doc.name)}
                     className="p-2 bg-gray-800 hover:bg-red-900/30 rounded-lg text-red-400 transition-colors"
+                    title="Delete"
                   >
                     <Trash2 size={16} />
                   </button>

@@ -34,9 +34,19 @@ async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, pati
 
   try {
     const client = twilio(accountSid, authToken);
-    const toFormatted = doctorWhatsapp.startsWith("+") ? `whatsapp:${doctorWhatsapp}` : `whatsapp:+${doctorWhatsapp}`;
+    
+    // Normalize number: ensure it has + and check for possible missing country code
+    let cleanNumber = doctorWhatsapp.replace(/\s+/g, '');
+    if (!cleanNumber.startsWith("+")) {
+       console.warn(`⚠️  Doctor number ${cleanNumber} missing country code prefix (+). Assuming local or needs fix.`);
+       cleanNumber = `+${cleanNumber}`;
+    }
 
-    console.log(`📡 Sending WhatsApp to: ${toFormatted} (From: ${fromNumber})`);
+    const toFormatted = `whatsapp:${cleanNumber}`;
+
+    console.log(`📡 Attempting to send WhatsApp message...`);
+    console.log(`   To: ${toFormatted}`);
+    console.log(`   From: ${fromNumber}`);
 
     const message = await client.messages.create({
       from: fromNumber,
@@ -52,14 +62,22 @@ async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, pati
         `Please be available at the scheduled time. Thank you!`,
     });
 
-    console.log(`✅ WhatsApp notification sent to Dr. ${doctorName}:`, message.sid);
+    console.log(`✅ WhatsApp notification sent successfully. SID: ${message.sid}`);
     return { success: true, sid: message.sid };
   } catch (error) {
-    console.error("❌ Failed to send WhatsApp notification:", error.message);
+    console.error("❌ Twilio Error:", error.message);
+    let advice = "Check your Twilio credentials in .env";
+    
     if (error.code === 21608) {
-      console.error("💡 TIP: The doctor's number is not opted-in to your Twilio sandbox.");
+      advice = "The doctor's number MUST opt-in to your Sandbox. Tell them to send 'join <sandbox-keyword>' to " + fromNumber.replace('whatsapp:', '');
+    } else if (error.code === 21211) {
+      advice = "The doctor's number seems invalid. Make sure it includes the country code (e.g., +91).";
+    } else if (error.status === 401) {
+      advice = "Invalid Twilio Account SID or Auth Token. Double check your Twilio Console.";
     }
-    return { success: false, reason: error.message };
+    
+    console.error(`💡 ADVICE: ${advice}`);
+    return { success: false, reason: error.message, advice };
   }
 }
 
