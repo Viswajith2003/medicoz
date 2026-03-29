@@ -34,10 +34,13 @@ async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, pati
 
   try {
     const client = twilio(accountSid, authToken);
+    const toFormatted = doctorWhatsapp.startsWith("+") ? `whatsapp:${doctorWhatsapp}` : `whatsapp:+${doctorWhatsapp}`;
+
+    console.log(`📡 Sending WhatsApp to: ${toFormatted} (From: ${fromNumber})`);
 
     const message = await client.messages.create({
       from: fromNumber,
-      to: `whatsapp:${doctorWhatsapp}`,
+      to: toFormatted,
       body:
         `🩺 *New Appointment Booked - Medicoz*\n\n` +
         `Hello Dr. ${doctorName},\n\n` +
@@ -53,6 +56,9 @@ async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, pati
     return { success: true, sid: message.sid };
   } catch (error) {
     console.error("❌ Failed to send WhatsApp notification:", error.message);
+    if (error.code === 21608) {
+      console.error("💡 TIP: The doctor's number is not opted-in to your Twilio sandbox.");
+    }
     return { success: false, reason: error.message };
   }
 }

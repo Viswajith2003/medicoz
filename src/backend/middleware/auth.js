@@ -17,4 +17,12 @@ function verifyToken(req, res, next) {
   });
 }
 
-module.exports = { verifyToken };
+function verifyAdmin(req, res, next) {
+  if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    res.status(403).json({ message: "Admin access denied" });
+  }
+}
+
+module.exports = { verifyToken, verifyAdmin };

@@ -4,17 +4,14 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar, Video, MessageCircle, Clock, Star, ChevronRight,
-  CheckCircle, X, Send, ExternalLink, User, Stethoscope, Phone, Wifi, WifiOff,
+  CheckCircle, X, Send, ExternalLink, User, Stethoscope, Phone, Wifi, WifiOff, Loader,
 } from "lucide-react";
 import { io } from "socket.io-client";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:7000";
 
-// ─── Dummy Doctors ─────────────────────────────────────────────────────────────
-const DUMMY_DOCTORS = [
-  { id: "dr-001", name: "Arya", specialty: "General Physician", experience: "12 yrs", rating: 4.9, available: true, whatsapp: "+919605644954", slots: ["09:00 AM", "10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"], avatar: "AS", color: "from-violet-500 to-purple-600", about: "MBBS, MD – Expert in fever, infections & general health." },
-  { id: "dr-002", name: "Viswajith", specialty: "Cardiologist", experience: "8 yrs", rating: 4.8, available: true, whatsapp: "+919072906576", slots: ["09:00 AM", "10:30 AM", "12:00 PM", "02:00 PM", "05:00 PM"], avatar: "SJ", color: "from-cyan-500 to-blue-600", about: "MBBS – General health consultations & preventive care." },
-];
+// Doctors will be fetched from the API
+const DEFAULT_COLOR = "from-blue-500 to-indigo-600";
 
 const TABS = [
   { id: "book", label: "Book Appointment", icon: Calendar },
@@ -25,6 +22,9 @@ const TABS = [
 // ───────────────────────────────────────────────────────────────────────────────
 export default function ConsultDoctor({ theme, user }) {
   const [activeTab, setActiveTab] = useState("book");
+
+  const [doctors, setDoctors] = useState([]);
+  const [doctorsLoading, setDoctorsLoading] = useState(true);
 
   // Booking state
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -37,7 +37,7 @@ export default function ConsultDoctor({ theme, user }) {
   const [bookedAppointment, setBookedAppointment] = useState(null);
 
   // Real-time messages state
-  const [chatDoctor, setChatDoctor] = useState(DUMMY_DOCTORS[0]);
+  const [chatDoctor, setChatDoctor] = useState(null);
   const [messageInput, setMessageInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -59,10 +59,21 @@ export default function ConsultDoctor({ theme, user }) {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const patientName = user ? `${user.firstName} ${user.lastName || ""}`.trim() : "Patient";
+  // ── Fetch Doctors ────────────────────────────────────────────────────────
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/doctors`)
+      .then((res) => {
+        setDoctors(res.data);
+        if (res.data.length > 0) setChatDoctor(res.data[0]);
+      })
+      .catch((err) => console.error("Error fetching doctors:", err))
+      .finally(() => setDoctorsLoading(false));
+  }, []);
+
   const userId = user?._id || user?.id || "guest";
 
   // ── Current room ID ───────────────────────────────────────────────────────
-  const roomId = `${userId}_${chatDoctor.id}`;
+  const roomId = chatDoctor ? `${userId}_${chatDoctor._id}` : null;
 
   // ── Socket.io connection ──────────────────────────────────────────────────
   useEffect(() => {
@@ -98,14 +109,14 @@ export default function ConsultDoctor({ theme, user }) {
 
   // ── Join room when doctor changes ─────────────────────────────────────────
   useEffect(() => {
-    if (!socketRef.current || !isConnected) return;
+    if (!socketRef.current || !isConnected || !roomId) return;
     socketRef.current.emit("join_room", { roomId, name: patientName, role: "patient" });
 
     // Load message history
     axios.get(`${API_BASE_URL}/messages/${roomId}`)
       .then((res) => setChatMessages(res.data))
       .catch(() => setChatMessages([]));
-  }, [chatDoctor, isConnected, roomId]);
+  }, [chatDoctor, isConnected, roomId, patientName]);
 
   // ── Auto-scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -129,7 +140,16 @@ export default function ConsultDoctor({ theme, user }) {
     try {
       const res = await axios.post(
         `${API_BASE_URL}/appointments/book`,
-        { doctorId: selectedDoctor.id, doctorName: selectedDoctor.name, doctorSpecialty: selectedDoctor.specialty, doctorWhatsapp: selectedDoctor.whatsapp, date: selectedDate, timeSlot: selectedSlot, notes, patientName },
+        { 
+          doctorId: selectedDoctor._id, 
+          doctorName: selectedDoctor.name, 
+          doctorSpecialty: selectedDoctor.specialty, 
+          doctorWhatsapp: selectedDoctor.whatsapp, 
+          date: selectedDate, 
+          timeSlot: selectedSlot, 
+          notes, 
+          patientName 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const appt = res.data.appointment;
@@ -159,7 +179,7 @@ export default function ConsultDoctor({ theme, user }) {
       senderId: userId,
       senderType: "patient",
       senderName: patientName,
-      doctorId: chatDoctor.id,
+      doctorId: chatDoctor._id,
       userId,
       text: messageInput.trim(),
     });
@@ -221,26 +241,35 @@ export default function ConsultDoctor({ theme, user }) {
               {bookingStep === "list" && (
                 <>
                   <h2 className={`text-base font-bold mb-4 ${text}`}>Choose a Doctor</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                    {DUMMY_DOCTORS.map((doc) => (
-                      <motion.div key={doc.id} whileHover={{ y: -4 }}
-                        onClick={() => { if (!doc.available) return; setSelectedDoctor(doc); setBookingStep("slots"); }}
-                        className={`relative border rounded-2xl p-5 cursor-pointer transition-all ${card} ${doc.available ? "hover:border-blue-500/50" : "opacity-50 cursor-not-allowed"}`}>
-                        <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full ${doc.available ? "bg-emerald-500/10 text-emerald-400" : "bg-gray-500/10 text-gray-400"}`}>
-                          {doc.available ? "Available" : "Busy"}
-                        </span>
-                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${doc.color} flex items-center justify-center text-white font-bold text-lg mb-4 shadow-lg`}>{doc.avatar}</div>
-                        <p className={`font-bold text-sm ${text}`}>Dr. {doc.name}</p>
-                        <p className={`text-xs ${subtext} mb-1`}>{doc.specialty}</p>
-                        <p className={`text-[11px] ${subtext} mb-3`}>{doc.about}</p>
-                        <div className="flex items-center gap-3 text-xs">
-                          <span className="flex items-center gap-1 text-amber-400"><Star className="w-3 h-3 fill-amber-400" /> {doc.rating}</span>
-                          <span className={subtext}>{doc.experience}</span>
-                        </div>
-                        {doc.available && <div className="mt-3 flex items-center gap-1 text-blue-400 text-xs font-semibold">Book Now <ChevronRight className="w-3 h-3" /></div>}
-                      </motion.div>
-                    ))}
-                  </div>
+                  {doctorsLoading ? (
+                    <div className="flex justify-center py-20"><Loader className="animate-spin text-blue-500" size={40} /></div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                      {doctors.map((doc) => (
+                        <motion.div key={doc._id} whileHover={{ y: -4 }}
+                          onClick={() => { setSelectedDoctor(doc); setBookingStep("slots"); }}
+                          className={`relative border rounded-2xl p-5 cursor-pointer transition-all ${card} hover:border-blue-500/50`}>
+                          <span className={`absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400`}>
+                            Available
+                          </span>
+                          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${DEFAULT_COLOR} flex items-center justify-center text-white font-bold text-lg mb-4 shadow-lg`}>
+                            {doc.name.charAt(0)}
+                          </div>
+                          <p className={`font-bold text-sm ${text}`}>Dr. {doc.name}</p>
+                          <p className={`text-xs ${subtext} mb-1`}>{doc.specialty}</p>
+                          <p className={`text-[11px] ${subtext} mb-3 line-clamp-2`}>{doc.bio || `Experienced ${doc.specialty}`}</p>
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className="flex items-center gap-1 text-amber-400"><Star className="w-3 h-3 fill-amber-400" /> 4.9</span>
+                            <span className={subtext}>{doc.experience || "10+ yrs"}</span>
+                          </div>
+                          <div className="mt-3 flex items-center gap-1 text-blue-400 text-xs font-semibold">Book Now <ChevronRight className="w-3 h-3" /></div>
+                        </motion.div>
+                      ))}
+                      {doctors.length === 0 && (
+                        <div className="col-span-full py-20 text-center text-gray-500">No doctors available yet.</div>
+                      )}
+                    </div>
+                  )}
                   {appointments.length > 0 && (
                     <>
                       <h2 className={`text-base font-bold mb-3 ${text}`}>Your Appointments</h2>
@@ -271,8 +300,8 @@ export default function ConsultDoctor({ theme, user }) {
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
                   <button onClick={() => { setBookingStep("list"); setSelectedSlot(""); setSelectedDate(""); }} className={`flex items-center gap-1 text-xs ${subtext} hover:text-blue-400 mb-5 transition-colors`}>← Back to doctors</button>
                   <div className={`border rounded-2xl p-5 mb-5 flex items-center gap-4 ${card}`}>
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${selectedDoctor.color} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>{selectedDoctor.avatar}</div>
-                    <div><p className={`font-bold ${text}`}>Dr. {selectedDoctor.name}</p><p className={`text-sm ${subtext}`}>{selectedDoctor.specialty} · {selectedDoctor.experience}</p></div>
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${DEFAULT_COLOR} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>{selectedDoctor.name.charAt(0)}</div>
+                    <div><p className={`font-bold ${text}`}>Dr. {selectedDoctor.name}</p><p className={`text-sm ${subtext}`}>{selectedDoctor.specialty} · {selectedDoctor.experience || "10+ yrs"}</p></div>
                   </div>
                   <div className="mb-5">
                     <label className={`block text-sm font-semibold mb-2 ${text}`}>Select Date</label>
@@ -281,7 +310,7 @@ export default function ConsultDoctor({ theme, user }) {
                   <div className="mb-5">
                     <label className={`block text-sm font-semibold mb-2 ${text}`}>Select Time Slot</label>
                     <div className="flex flex-wrap gap-2">
-                      {selectedDoctor.slots.map((slot) => (
+                      {(selectedDoctor.slots || ["09:00 AM", "10:00 AM", "11:00 AM", "02:00 PM", "04:00 PM"]).map((slot) => (
                         <button key={slot} onClick={() => setSelectedSlot(slot)}
                           className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${selectedSlot === slot ? "bg-blue-500 text-white border-blue-500" : `${card} ${subtext} hover:border-blue-500/50`}`}>
                           <Clock className="w-3.5 h-3.5" /> {slot}
@@ -354,15 +383,15 @@ export default function ConsultDoctor({ theme, user }) {
                       : <WifiOff className="w-3 h-3 text-red-400" />}
                   </span>
                 </div>
-                {DUMMY_DOCTORS.filter((d) => d.available).map((doc) => (
-                  <button key={doc.id}
+                {doctors.map((doc) => (
+                  <button key={doc._id}
                     onClick={() => { setChatDoctor(doc); setChatMessages([]); }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${chatDoctor.id === doc.id
+                    className={`w-full flex items-center gap-3 px-4 py-3 transition-colors ${chatDoctor?._id === doc._id
                       ? isDark ? "bg-blue-500/10 border-r-2 border-blue-500" : "bg-blue-50 border-r-2 border-blue-500"
                       : isDark ? "hover:bg-gray-800/50" : "hover:bg-gray-100"}`}>
-                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${doc.color} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{doc.avatar}</div>
+                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${DEFAULT_COLOR} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{doc.name.charAt(0)}</div>
                     <div className="text-left min-w-0">
-                      <p className={`text-xs font-semibold truncate ${chatDoctor.id === doc.id ? "text-blue-400" : text}`}>Dr. {doc.name}</p>
+                      <p className={`text-xs font-semibold truncate ${chatDoctor?._id === doc._id ? "text-blue-400" : text}`}>Dr. {doc.name}</p>
                       <p className={`text-[10px] truncate ${subtext}`}>{doc.specialty}</p>
                     </div>
                   </button>
@@ -370,7 +399,7 @@ export default function ConsultDoctor({ theme, user }) {
                 {/* Doctor portal link */}
                 <div className={`mt-4 mx-3 p-3 rounded-xl border text-center ${card}`}>
                   <p className={`text-[10px] ${subtext} mb-1`}>Are you a doctor?</p>
-                  <a href={`/doctor/${chatDoctor.id}`} target="_blank" rel="noreferrer"
+                  <a href={`/doctor/${chatDoctor?._id}`} target="_blank" rel="noreferrer"
                     className="text-[10px] text-blue-400 hover:underline font-semibold">Open Doctor Portal ↗</a>
                 </div>
               </div>
@@ -379,13 +408,15 @@ export default function ConsultDoctor({ theme, user }) {
               <div className="flex-1 flex flex-col min-w-0">
                 {/* Chat header */}
                 <div className={`flex items-center justify-between px-5 py-3 border-b ${isDark ? "border-gray-800" : "border-gray-200"}`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${chatDoctor.color} flex items-center justify-center text-white text-xs font-bold`}>{chatDoctor.avatar}</div>
-                    <div>
-                      <p className={`text-sm font-bold ${text}`}>Dr. {chatDoctor.name}</p>
-                      <p className={`text-xs ${subtext}`}>{chatDoctor.specialty}</p>
+                  {chatDoctor ? (
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${DEFAULT_COLOR} flex items-center justify-center text-white text-xs font-bold`}>{chatDoctor.name.charAt(0)}</div>
+                      <div>
+                        <p className={`text-sm font-bold ${text}`}>Dr. {chatDoctor.name}</p>
+                        <p className={`text-xs ${subtext}`}>{chatDoctor.specialty}</p>
+                      </div>
                     </div>
-                  </div>
+                  ) : <div></div>}
                   <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${isConnected ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
                     {isConnected ? "● Live" : "○ Offline"}
                   </span>
@@ -409,7 +440,7 @@ export default function ConsultDoctor({ theme, user }) {
                         <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${isPatient
                           ? "bg-blue-500 text-white rounded-tr-none"
                           : isDark ? "bg-[#1b1c21] border border-gray-800 text-white rounded-tl-none" : "bg-white border border-gray-200 text-gray-800 rounded-tl-none"}`}>
-                          {!isPatient && <p className="text-[10px] font-bold text-blue-400 mb-1">Dr. {chatDoctor.name}</p>}
+                          {!isPatient && <p className="text-[10px] font-bold text-blue-400 mb-1">Dr. {chatDoctor?.name}</p>}
                           <p>{msg.text}</p>
                           <p className={`text-[10px] mt-1 ${isPatient ? "text-blue-200" : subtext}`}>{fmt(msg.timestamp)}</p>
                         </div>
@@ -420,7 +451,7 @@ export default function ConsultDoctor({ theme, user }) {
                   {isTyping && (
                     <div className="flex justify-start">
                       <div className={`rounded-2xl rounded-tl-none px-4 py-3 ${isDark ? "bg-[#1b1c21] border border-gray-800" : "bg-white border border-gray-200"}`}>
-                        <p className="text-[10px] font-bold text-blue-400 mb-1">Dr. {chatDoctor.name}</p>
+                        <p className="text-[10px] font-bold text-blue-400 mb-1">Dr. {chatDoctor?.name}</p>
                         <div className="flex gap-1">
                           {[0, 1, 2].map((i) => (
                             <motion.div key={i} animate={{ y: [0, -4, 0] }} transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.15 }} className="w-2 h-2 rounded-full bg-blue-400" />
@@ -438,7 +469,8 @@ export default function ConsultDoctor({ theme, user }) {
                     value={messageInput}
                     onChange={handleTyping}
                     onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                    placeholder={`Message Dr. ${chatDoctor.name}...`}
+                    placeholder={chatDoctor ? `Message Dr. ${chatDoctor.name}...` : "Select a doctor to chat"}
+                    disabled={!chatDoctor}
                     className={`flex-1 border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 ${inputBg}`}
                   />
                   <button onClick={sendMessage} disabled={!messageInput.trim() || !isConnected}

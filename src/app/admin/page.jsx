@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { Upload, LogIn, Lock, CheckCircle, AlertCircle, Loader, FileText, Trash2, Database } from "lucide-react";
+import { Upload, LogIn, Lock, CheckCircle, AlertCircle, Loader, FileText, Trash2, Database, Users } from "lucide-react";
+import AdminDoctorManagement from "../components/AdminDoctorManagement";
 
 export default function AdminPage() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -12,6 +13,7 @@ export default function AdminPage() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [filesLoading, setFilesLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("knowledge"); // "knowledge" or "doctors"
 
 
   // const API_BASE_URL = "http://localhost:7000";
@@ -201,8 +203,27 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="flex gap-6 items-start">
+        {/* Tab Navigation */}
+        <div className="flex gap-4 mb-8 p-1.5 bg-[#1b1c21] border border-gray-800 rounded-2xl w-fit">
+          <button
+            onClick={() => setActiveTab("knowledge")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'knowledge' ? 'bg-[#80d758] text-black shadow-lg shadow-[#80d758]/20' : 'text-gray-400 hover:text-white'}`}
+          >
+            <Database size={18} />
+            Knowledge Base
+          </button>
+          <button
+            onClick={() => setActiveTab("doctors")}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'doctors' ? 'bg-[#80d758] text-black shadow-lg shadow-[#80d758]/20' : 'text-gray-400 hover:text-white'}`}
+          >
+            <Users size={18} />
+            Doctor Management
+          </button>
+        </div>
+
+        {activeTab === "knowledge" ? (
+          /* Two Column Layout — Knowledge Base */
+          <div className="flex gap-6 items-start animate-in fade-in slide-in-from-bottom-4 duration-500">
 
           {/* LEFT — Upload Form */}
           <div className="flex-1 space-y-6">
@@ -310,6 +331,12 @@ export default function AdminPage() {
           </div>
 
         </div>
+        ) : (
+          /* Doctor Management Section */
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <AdminDoctorManagement apiBaseUrl={API_BASE_URL} getToken={getToken} />
+          </div>
+        )}
       </main>
     </div>
   );

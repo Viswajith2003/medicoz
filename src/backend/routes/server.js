@@ -14,11 +14,17 @@ const Message = require("../models/messageModel");
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://medicoz-iota.vercel.app",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 // Socket.io setup
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "https://medicoz-iota.vercel.app"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -37,10 +43,7 @@ console.log(`-----------------------------`);
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(cors({
-  origin: [
-    "https://medicoz-iota.vercel.app",  // Vercel frontend (production)
-    "http://localhost:3000",             // local dev
-  ],
+  origin: allowedOrigins,
   credentials: true,
 }));
 
@@ -136,6 +139,7 @@ app.use('/', require('./auth'));
 app.use('/chat', require('./chat'));
 app.use('/admin', require('./admin'));
 app.use('/appointments', require('./appointments'));
+app.use('/doctors', require('./doctors'));
 
 
 

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-const { verifyToken } = require("../middleware/auth");
+const { verifyToken, verifyAdmin } = require("../middleware/auth");
 const { processAndIngest } = require("../services/ingestService");
 const UploadedFile = require("../models/uploadedFileModel");
 
@@ -30,14 +30,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Verify admin middleware
-function verifyAdmin(req, res, next) {
-  if (req.user && req.user.isAdmin) {
-    next();
-  } else {
-    res.status(403).json({ message: "Admin access denied" });
-  }
-}
 
 // Upload & Ingest PDF
 router.post("/upload-medical-data", verifyToken, verifyAdmin, upload.single("pdf"), async (req, res) => {
