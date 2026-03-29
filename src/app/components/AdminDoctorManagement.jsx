@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Plus, Edit2, Trash2, X, Check, Loader, User, Phone, Stethoscope, Briefcase } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Check, Loader, User, Phone, Stethoscope, Briefcase, MessageCircle } from "lucide-react";
 
 export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
   const [doctors, setDoctors] = useState([]);
@@ -40,7 +40,7 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
       setFormData({
         name: doctor.name,
         specialty: doctor.specialty,
-        whatsapp: doctor.whatsapp,
+        whatsapp: doctor.whatsapp.startsWith("+91") ? doctor.whatsapp.slice(3) : doctor.whatsapp,
         experience: doctor.experience || "",
         bio: doctor.bio || "",
         image: doctor.image || "",
@@ -70,13 +70,17 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
     e.preventDefault();
     setLoading(true);
     const token = getToken();
+    const payload = { 
+      ...formData, 
+      whatsapp: `+91${formData.whatsapp.replace(/\D/g, "")}` 
+    };
     try {
       if (editingDoctor) {
-        await axios.put(`${apiBaseUrl}/admin/doctors/${editingDoctor._id}`, formData, {
+        await axios.put(`${apiBaseUrl}/admin/doctors/${editingDoctor._id}`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.post(`${apiBaseUrl}/admin/doctors`, formData, {
+        await axios.post(`${apiBaseUrl}/admin/doctors`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -242,14 +246,20 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
                   <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
                     <Phone size={14} /> WhatsApp Number
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                    className="w-full bg-[#0d0e11] border border-gray-800 rounded-xl p-3 text-white focus:border-[#80d758] outline-none transition-all"
-                    placeholder="e.g. +919072906576"
-                  />
+                  <div className="flex">
+                    <div className="bg-gray-800 border border-gray-800 border-r-0 rounded-l-xl p-3 text-gray-400 font-bold">
+                      +91
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                      className="w-full bg-[#0d0e11] border border-gray-800 rounded-r-xl p-3 text-white focus:border-[#80d758] outline-none transition-all"
+                      placeholder="9072906576"
+                      maxLength={10}
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
