@@ -61,7 +61,7 @@ export default function ConsultDoctor({ theme, user }) {
   const patientName = user ? `${user.firstName} ${user.lastName || ""}`.trim() : "Patient";
   // ── Fetch Doctors ────────────────────────────────────────────────────────
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/doctors`)
+    axios.get(`${API_BASE_URL}/admin/doctors`)
       .then((res) => {
         setDoctors(res.data);
         if (res.data.length > 0) setChatDoctor(res.data[0]);

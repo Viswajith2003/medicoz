@@ -21,7 +21,7 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${apiBaseUrl}/doctors`);
+      const res = await axios.get(`${apiBaseUrl}/admin/doctors`);
       setDoctors(res.data);
     } catch (err) {
       console.error("Failed to fetch doctors", err);
@@ -72,11 +72,11 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
     const token = getToken();
     try {
       if (editingDoctor) {
-        await axios.put(`${apiBaseUrl}/doctors/${editingDoctor._id}`, formData, {
+        await axios.put(`${apiBaseUrl}/admin/doctors/${editingDoctor._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.post(`${apiBaseUrl}/doctors`, formData, {
+        await axios.post(`${apiBaseUrl}/admin/doctors`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -93,7 +93,7 @@ export default function AdminDoctorManagement({ apiBaseUrl, getToken }) {
     if (!confirm(`Are you sure you want to delete Dr. ${name}?`)) return;
     const token = getToken();
     try {
-      await axios.delete(`${apiBaseUrl}/doctors/${id}`, {
+      await axios.delete(`${apiBaseUrl}/admin/doctors/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDoctors(doctors.filter((d) => d._id !== id));

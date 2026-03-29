@@ -139,7 +139,7 @@ app.use('/', require('./auth'));
 app.use('/chat', require('./chat'));
 app.use('/admin', require('./admin'));
 app.use('/appointments', require('./appointments'));
-app.use('/doctors', require('./doctors'));
+app.use('/admin/doctors', require('./doctors'));
 
 
 
