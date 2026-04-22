@@ -70,8 +70,8 @@ router.post("/book", verifyToken, async (req, res) => {
 
     // Send WhatsApp notification to doctor (non-blocking)
     const baseUrl = process.env.PUBLIC_URL
-      ? `${process.env.PUBLIC_URL}/api/appointments`
-      : `${req.protocol}://${req.get("host")}/api/appointments`;
+      ? `${process.env.PUBLIC_URL}/appointments`
+      : `${req.protocol}://${req.get("host")}/appointments`;
       
     const confirmUrl = `${baseUrl}/${appointment._id}/confirm`;
     const cancelUrl = `${baseUrl}/${appointment._id}/cancel`;
