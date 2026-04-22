@@ -12,7 +12,7 @@ const twilio = (() => {
  *   TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxx
  *   TWILIO_WHATSAPP_FROM=whatsapp:+14155238886   (Twilio sandbox number)
  */
-async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, patientName, date, timeSlot, roomUrl }) {
+async function sendDoctorWhatsAppNotification({ appointmentId, doctorName, doctorWhatsapp, patientName, date, timeSlot, roomUrl, confirmUrl, cancelUrl }) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const fromNumber = process.env.TWILIO_WHATSAPP_FROM || "whatsapp:+14155238886";
@@ -52,14 +52,15 @@ async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, pati
       from: fromNumber,
       to: toFormatted,
       body:
-        `🩺 *New Appointment Booked - Medicoz*\n\n` +
+        `🩺 *New Appointment Request - Medicoz*\n\n` +
         `Hello Dr. ${doctorName},\n\n` +
-        `A new consultation has been scheduled.\n\n` +
+        `You have a new consultation request. Please confirm or cancel this request.\n\n` +
         `👤 *Patient:* ${patientName}\n` +
         `📅 *Date:* ${date}\n` +
-        `⏰ *Time:* ${timeSlot}\n` +
-        `🎥 *Join Video Call:* ${roomUrl}\n\n` +
-        `Please be available at the scheduled time. Thank you!`,
+        `⏰ *Time:* ${timeSlot}\n\n` +
+        `✅ *To Confirm:* Click here:\n${confirmUrl}\n\n` +
+        `❌ *To Cancel:* Click here:\n${cancelUrl}\n\n` +
+        `Once confirmed, you will receive the join link.`,
     });
 
     console.log(`✅ WhatsApp notification sent successfully. SID: ${message.sid}`);
@@ -81,4 +82,35 @@ async function sendDoctorWhatsAppNotification({ doctorName, doctorWhatsapp, pati
   }
 }
 
-module.exports = { sendDoctorWhatsAppNotification };
+async function sendDoctorScheduledNotification({ doctorName, doctorWhatsapp, patientName, date, timeSlot, roomUrl }) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_WHATSAPP_FROM || "whatsapp:+14155238886";
+
+  if (!twilio || !accountSid || !authToken || !doctorWhatsapp) return;
+
+  try {
+    const client = twilio(accountSid, authToken);
+    let cleanNumber = doctorWhatsapp.replace(/\s+/g, '');
+    if (!cleanNumber.startsWith("+")) cleanNumber = `+${cleanNumber}`;
+    const toFormatted = `whatsapp:${cleanNumber}`;
+
+    await client.messages.create({
+      from: fromNumber,
+      to: toFormatted,
+      body:
+        `✅ *Appointment Confirmed - Medicoz*\n\n` +
+        `Hello Dr. ${doctorName},\n\n` +
+        `Your consultation has been successfully scheduled.\n\n` +
+        `👤 *Patient:* ${patientName}\n` +
+        `📅 *Date:* ${date}\n` +
+        `⏰ *Time:* ${timeSlot}\n\n` +
+        `🎥 *Join Video Call at the scheduled time:* \n${roomUrl}\n\n` +
+        `Thank you!`
+    });
+  } catch (err) {
+    console.error("Scheduled notification error:", err.message);
+  }
+}
+
+module.exports = { sendDoctorWhatsAppNotification, sendDoctorScheduledNotification };

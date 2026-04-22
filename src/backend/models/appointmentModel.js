@@ -12,7 +12,7 @@ const appointmentSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["pending", "confirmed", "cancelled", "completed"],
-    default: "confirmed",
+    default: "pending",
   },
   roomId: { type: String }, // Jitsi room ID
   createdAt: { type: Date, default: Date.now },
